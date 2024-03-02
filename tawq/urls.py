@@ -28,6 +28,8 @@ urlpatterns = [
          include('authorization.urls', namespace='authorization')),
     path('api/v1/subscription/',
          include('subscription.urls', namespace='subscription')),
+     path('api/v1/post.urls/', 
+          include(('post.urls', 'post'), namespace='post-section')),
 
 
     # APPLICATION DOCUMENTATION

@@ -93,6 +93,7 @@ INSTALLED_APPS = [
     'white_label',
     'utils',
     'wallet',
+    'post',
 ]
 
 SITE_ID = 1
