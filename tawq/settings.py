@@ -80,6 +80,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_rest_passwordreset',
     'social_django',
+    'ckeditor',
 
     # Custom applications
     'authorization',
