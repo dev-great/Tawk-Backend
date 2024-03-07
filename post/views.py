@@ -1,4 +1,5 @@
 from post.models import Post
+from authorization.models import *
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from post.serializers import PostSerializer, UpdatePostSerializer
@@ -42,13 +43,13 @@ class UpdatePost(generics.UpdateAPIView):
     permission_classes =  IsAuthenticated
 
     def patch(self, request, customuser_id, *args, **kwargs):
-        if request.c == "buyer":
+        if IsAuthenticated:
             post_update = Post.objects.get(id=customuser_id)
             serializer = self.serializer_class(
                 post_update, data=request.data
             )
             serializer.is_valid(raise_exception=True)
-            serializer.save(buyer=request.user)
+            serializer.save()
             return Response(
                 {"message": "Post  Updated Successfully"},
                 status=status.HTTP_200_OK,
