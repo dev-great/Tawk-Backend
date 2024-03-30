@@ -1,15 +1,21 @@
 from dataclasses import field
 from rest_framework import serializers
-from post.models import Post
+from post.models import Post, PostImage
+
+
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PostImage
+        fields = '__all__'
 
 
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ["title", "slug", "author", "image", "body"]
+        fields = ["title", "author", "body"]
 
 
 class UpdatePostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ["title", "slug", "image", "body"]
+        fields = ["title", "body"]

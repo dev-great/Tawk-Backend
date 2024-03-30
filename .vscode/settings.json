@@ -1,0 +1,6 @@
+{
+  "python.analysis.extraPaths": [
+    "/Users/favourpeter/.vscode/extensions/fxtd-odyssey.mayapy-1.0.4/mayaSDK",
+    "./tawq"
+  ]
+}
