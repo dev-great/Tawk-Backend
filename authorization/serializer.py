@@ -97,3 +97,9 @@ class ReferralHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Referral
         fields = '__all__'
+
+
+class SocialMediaUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SocialMediaUser
+        fields = '__all__'
