@@ -1,9 +1,12 @@
 import os
+from dotenv import load_dotenv
 from pathlib import Path
 import dj_database_url
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -160,7 +163,7 @@ WSGI_APPLICATION = 'tawq.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
+        'ENGINE': os.getenv('ENGINE'),
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }

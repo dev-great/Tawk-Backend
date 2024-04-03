@@ -1,13 +1,17 @@
+import os
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 import requests
 from notification.models import NotificationPost
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def send_fcm_notification(fcm_token, title, body):
 
-    fcm_server_key = "AAAA8OdunNw:APA91bEPYQKJTrbqQShAvloClb8Pwg9Mzk8SjoIgxlKF3e2yvqyuw2T4R6AHrXX_x2To7raeK8r96he3RheaHxl_OAlVPJ7Q9xRHaFis-IiKVe9Z4IS82NUDdXa7BUYsTrBWk4DSlOOT"
-    fcm_url = "https://fcm.googleapis.com/fcm/send"
+    fcm_server_key = os.getenv('FCM_SERVER_KEY')
+    fcm_url = os.getenv('FCM_BASE_URL')
 
     # Define the message payload
     message = {
