@@ -1,5 +1,5 @@
 from django.urls import path
-from post.views import CreatePostAPIView, DeletePostAPIView, ImageView, PostToFacebookView, PostToInstagramView, PostToLinkedInView, PostToTwitterView, UpdatePostAPIView, UserPostsAPIView
+from post.views import CreatePostAPIView, DeletePostAPIView, ImageView, PostToFacebookView, PostToInstagramView, PostToTwitterView, UpdatePostAPIView, UserPostsAPIView
 
 urlpatterns = [
     path('delete-post/', DeletePostAPIView.as_view(), name='delete_post'),
