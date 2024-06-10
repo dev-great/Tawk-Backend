@@ -76,6 +76,9 @@ INSTALLED_APPS = [
     'django_rest_passwordreset',
     'social_django',
     'django_celery_beat',
+    'oauth2_provider',
+    'drf_social_oauth2',
+
 
     # Custom applications
     'authorization',
@@ -101,11 +104,19 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'utils.exceptions.custom_exception_handler',
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',  # django-oauth-toolkit >= 1.0.0
+        'drf_social_oauth2.authentication.SocialAuthentication',
+
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
+
+AUTHENTICATION_BACKENDS = (
+   'drf_social_oauth2.backends.DjangoOAuth2',
+   'django.contrib.auth.backends.ModelBackend',
+)
 
 SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
@@ -150,6 +161,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
+
             ],
         },
     },
