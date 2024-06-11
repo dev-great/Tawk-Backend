@@ -114,7 +114,11 @@ REST_FRAMEWORK = {
 }
 
 AUTHENTICATION_BACKENDS = (
+
+    #drf social Oauth 2
    'drf_social_oauth2.backends.DjangoOAuth2',
+
+   #Django
    'django.contrib.auth.backends.ModelBackend',
 )
 
