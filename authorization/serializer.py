@@ -1,14 +1,12 @@
+from .models import *
+from .services import *
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import *
+from rest_framework import serializers, status
+from drf_yasg.utils import swagger_auto_schema
 from django.contrib.auth import get_user_model
-from rest_framework.authtoken.models import Token
+from exceptions.custom_apiexception_class import *
 from django.utils.decorators import method_decorator
-from django.contrib.auth import authenticate
-from django.core.exceptions import ObjectDoesNotExist
-from .services import *
-from rest_framework.validators import ValidationError
-from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
@@ -17,6 +15,41 @@ class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
 
+
+class TokenObtainPairResponseSerializer(serializers.Serializer):
+    access = serializers.CharField()
+    refresh = serializers.CharField()
+
+    def create(self, validated_data):
+        raise NotImplementedError()
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError()
+
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        # Add custom claims
+        token['email'] = user.email
+        return token
+
+
+class TokenRefreshResponseSerializer(serializers.Serializer):
+    access = serializers.CharField()
+
+    def create(self, validated_data):
+        raise NotImplementedError()
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError()
+
+
+class TokenVerifyResponseSerializer(serializers.Serializer):
+    def create(self, validated_data):
+        raise NotImplementedError()
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError()
 
 class UserSerializer(serializers.ModelSerializer):
     referral_code = serializers.CharField(
@@ -65,14 +98,14 @@ class UserLoginSerializer(serializers.Serializer):
                 if user.is_active:
                     data['user'] = user
                 else:
-                    raise ValidationError(
-                        "Your account has been suspended", code=404)
+                    return CustomAPIException(detail="Your account has been suspended", status_code=status.HTTP_400_BAD_REQUEST).get_full_details()
+
             else:
-                raise ValidationError(
-                    "Please check your credentials and try again!", code=401)
+                return CustomAPIException(detail="Please check your credentials and try again!", status_code=status.HTTP_400_BAD_REQUEST).get_full_details()
+
         else:
-            raise ValidationError(
-                "Please enter both username and password to login!", code=401)
+            return CustomAPIException(detail="Please enter both username and password to login!", status_code=status.HTTP_400_BAD_REQUEST).get_full_details()
+
         return data
 
 
@@ -98,8 +131,3 @@ class ReferralHistorySerializer(serializers.ModelSerializer):
         model = Referral
         fields = '__all__'
 
-
-class SocialMediaUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SocialMediaUser
-        fields = '__all__'

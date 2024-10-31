@@ -1,7 +1,12 @@
-from django.contrib.auth import authenticate
+import logging
 from rest_framework import status
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from exceptions.custom_apiexception_class import *
 from django.contrib.auth.models import User
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import generics
+from utils.custom_response import custom_response
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_protect
@@ -9,13 +14,20 @@ from rest_framework.generics import DestroyAPIView
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from dotenv import load_dotenv
 from django.utils.decorators import method_decorator
 from authorization.models import CustomUser, Referral, ReferralCode
-from rest_framework.exceptions import ValidationError
-from authorization.serializer import ChangePasswordSerializer, ReferralCodeSerializer, ReferralHistorySerializer, UserLoginSerializer, UserSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
+from authorization.serializer import ChangePasswordSerializer, TokenObtainPairResponseSerializer, TokenRefreshResponseSerializer, TokenVerifyResponseSerializer,ReferralCodeSerializer, ReferralHistorySerializer, UserSerializer
 
+
+load_dotenv()
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class CustomValidationException(Exception):
@@ -27,191 +39,276 @@ class CustomValidationException(Exception):
 
 
 class RegisterView(APIView):
-    csrf_protect_method = method_decorator(csrf_protect)
+    permission_classes = [AllowAny]
 
-    @swagger_auto_schema(request_body=UserSerializer)
-    def post(self, request):
-        serializers = UserSerializer(data=request.data)
-        if serializers.is_valid(raise_exception=True):
-            email = serializers.validated_data.get("email")
-
-            # Check if the email already exists
-            if User.objects.filter(email=email).exists():
-                return Response({
-                    "statusCode": status.HTTP_400_BAD_REQUEST,
-                    "message": "Email already exists.",
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-            # If email doesn't exist, save the new user
-            user = serializers.save()
-
-            # Create and associate a Token with the new user
-            token, _ = Token.objects.get_or_create(user=user)
-
-            # Include the token key in the payload
-            payload = {
-                'user': serializers.data,
-                'token': token.key
+    @swagger_auto_schema(
+        request_body=UserSerializer,
+        responses={status.HTTP_201_CREATED: UserSerializer}
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            refresh = RefreshToken.for_user(user)
+            response_data = {
+                'user': serializer.data,
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
             }
+            logger.info(f"User registered: {serializer.data['email']}")
+            return custom_response(status_code=status.HTTP_201_CREATED, message="Success", data=response_data)
+        else:
+            error_msg = str(serializer.errors)
+            logger.error(f"Registration error: {error_msg}")
+            return CustomAPIException(detail=str(serializer.errors), status_code=status.HTTP_400_BAD_REQUEST).get_full_details()
 
-            return Response({
-                "statusCode": status.HTTP_200_OK,
-                "message": "User registered successfully.",
-                "data": payload,
-            }, status=status.HTTP_200_OK)
 
-        return Response({
-            "statusCode": status.HTTP_400_BAD_REQUEST,
-            "message": "Invalid data.",
-            "error": serializers.errors,
-        }, status=status.HTTP_400_BAD_REQUEST)
+class LoginView(TokenObtainPairView):
+    @swagger_auto_schema(
+        responses={
+            status.HTTP_200_OK: TokenObtainPairResponseSerializer,
+            status.HTTP_400_BAD_REQUEST: "Bad request, typically because of a malformed request body.",
+            status.HTTP_401_UNAUTHORIZED: "Unauthorized, typically because of invalid credentials.",
+        }
+    )
+    def post(self, request, *args, **kwargs):
+        logger.info("Login request received.")
+        print(request.data)
+        serializer = self.get_serializer(data=request.data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+            logger.info("Request data is valid.")
+        except TokenError as e:
+            logger.error(f"TokenError encountered: {e}")
+            return CustomAPIException(
+                detail="Invalid token.", status_code=status.HTTP_401_UNAUTHORIZED).get_full_details()
+        except Exception as e:
+            logger.error(f"Exception encountered: {e}")
+            return CustomAPIException(detail=str(
+                e), status_code=status.HTTP_400_BAD_REQUEST).get_full_details()
+
+        logger.info("Login successful.")
+
+        user_email = request.data['email']
+        print(user_email)
+        try:
+            profile = CustomUser.objects.get(email__iexact=user_email)
+        except CustomUser.DoesNotExist:
+            logger.error(f"User with email {user_email} does not exist.")
+            return CustomAPIException(
+                detail="User not found.",
+                status_code=status.HTTP_404_NOT_FOUND
+            ).get_full_details()
+
+        user_data = UserSerializer(profile).data
+
+        # Include user details and tokens in the response
+        response_data = {
+            "auth": {
+                "refresh": serializer.validated_data['refresh'],
+                "access": serializer.validated_data['access'],
+            },
+            "user": user_data,
+        }
+
+        return custom_response(status_code=status.HTTP_200_OK, message="Success", data=response_data)
+
+
+class TokenRefreshView(TokenRefreshView):
+    @swagger_auto_schema(
+        responses={
+            status.HTTP_200_OK: TokenRefreshResponseSerializer,
+            status.HTTP_400_BAD_REQUEST: "Bad request, typically because of a malformed request body.",
+            status.HTTP_401_UNAUTHORIZED: "Unauthorized, typically because of invalid token.",
+        }
+    )
+    def post(self, request, *args, **kwargs):
+        logger.info("Token refresh request received.")
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == status.HTTP_200_OK:
+            logger.info("Token refresh successful.")
+            return custom_response(status_code=status.HTTP_200_OK, message="Token is refresh.", data=response.data)
+        else:
+            logger.error(
+                f"Token refresh failed with status code {response.status_code}.")
+            return CustomAPIException(detail="Token is invalid.", status_code=response.status_code, data=response.data).get_full_details()
+
+
+class TokenVerifyView(TokenVerifyView):
+    @swagger_auto_schema(
+        responses={
+            status.HTTP_200_OK: TokenVerifyResponseSerializer,
+            status.HTTP_400_BAD_REQUEST: "Bad request, typically because of a malformed request body.",
+            status.HTTP_401_UNAUTHORIZED: "Unauthorized, typically because of invalid token.",
+        }
+    )
+    def post(self, request, *args, **kwargs):
+        logger.info("Token verification request received.")
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == status.HTTP_200_OK:
+            logger.info("Token verification successful.")
+            return custom_response(status_code=status.HTTP_200_OK, message="Token is valid.", data=response.data)
+        else:
+            logger.error(
+                f"Token verification failed with status code {response.status_code}.")
+            return CustomAPIException(detail="Token is invalid or expired.", status_code=response.status_code, data=response.data).get_full_details()
+
 
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
     csrf_protect_method = method_decorator(csrf_protect)
 
-    @swagger_auto_schema(
-        request_body=UserSerializer,
-        operation_description=" Edit user profile information. Use this endpoint to update the profile details of the authenticated user. Provide the new profile data in the request body using the UserProfileSerializer."
-
-    )
+    @swagger_auto_schema(request_body=UserSerializer)
     def patch(self, request):
+        logger.info(
+            f"UserProfile PATCH request received for user: {request.user.email}")
         user_email = request.user.email
-        profile = CustomUser.objects.get(email__exact=user_email)
 
-        serializers = UserSerializer(
-            profile, data=request.data, partial=True)
+        try:
+            profile = CustomUser.objects.get(email__exact=user_email)
+            logger.debug(f"User profile found for email: {user_email}")
+        except CustomUser.DoesNotExist:
+            logger.error(f"User profile not found for email: {user_email}")
+            raise CustomAPIException(
+                detail="User profile not found.", status_code=status.HTTP_404_NOT_FOUND).get_full_details()
+
+        serializers = UserSerializer(profile, data=request.data, partial=True)
         if serializers.is_valid():
-
-            # User update is sucessful
             serializers.save()
-            return Response({
-                "statusCode": status.HTTP_200_OK,
-                "Success": "User updated successfully"
-            },  status=status.HTTP_200_OK)
+            logger.info(
+                f"User profile updated successfully for email: {user_email}")
+            return custom_response(status_code=status.HTTP_200_OK, message="User updated successfully", data=serializers.data)
 
-        # In an instance an error occures
-        return Response({
-            "statusCode": status.HTTP_400_BAD_REQUEST,
-            "message": "Invalid data.",
-            "error": serializers.errors,
-        }, status=status.HTTP_400_BAD_REQUEST)
+        logger.error(
+            f"User profile update failed for email: {user_email}, errors: {serializers.errors}")
+        raise CustomAPIException(
+            detail=serializers.errors, status_code=status.HTTP_400_BAD_REQUEST).get_full_details()
 
     def get(self, request):
+        logger.info(
+            f"UserProfile GET request received for user: {request.user.email}")
+        email = request.user.email
+
         try:
-            email = request.user.email
             profile = CustomUser.objects.get(email__exact=email)
-
-            serializer = UserSerializer(profile)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
+            logger.debug(f"User profile found for email: {email}")
         except CustomUser.DoesNotExist:
-            return Response({
-                "statusCode": status.HTTP_400_BAD_REQUEST,
-                "message": "User profile not found.",
-                "error": serializer.errors,
-            }, status=status.HTTP_404_NOT_FOUND
-            )
-        except Exception as e:
-            return Response({
-                "statusCode": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                "message": "Invalid data.",
-                "error": str(e),
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            logger.error(f"User profile not found for email: {email}")
+            raise CustomAPIException(
+                detail="User profile not found.", status_code=status.HTTP_404_NOT_FOUND).get_full_details()
 
+        serializer = UserSerializer(profile)
+        logger.info(f"User profile retrieved successfully for email: {email}")
+        return custom_response(status_code=status.HTTP_200_OK, message="Success.", data=serializer.data)
 
-class UserLoginView(APIView):
-
-    @swagger_auto_schema(request_body=UserLoginSerializer)
-    def post(self, request):
-        serializer = UserLoginSerializer(data=request.data)
-
-        try:
-            serializer.is_valid(raise_exception=True)
-        except ValidationError as e:
-
-            # Login form validation error
-            return Response({
-                "statusCode": status.HTTP_400_BAD_REQUEST,
-                "message": "An error occurred, validation failed.",
-                "error": str(e)
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        username = serializer.validated_data['username']
-        password = serializer.validated_data['password']
-
-        user = authenticate(request, username=username, password=password)
-
-        if user is None:
-            # Invalid login credentials
-            return Response({
-                "statusCode": status.HTTP_401_UNAUTHORIZED,
-                "message": "Invalid username or password."
-            }, status=status.HTTP_401_UNAUTHORIZED)
-
-        try:
-            token, _ = Token.objects.get_or_create(user=user)
-            return Response({"token": token.key}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({
-                "statusCode": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                "message": "An error occurred, data not fetched.",
-                "error": str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class Logout(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, format=None):
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'refresh', openapi.IN_QUERY, description="Refresh token", type=openapi.TYPE_STRING, required=True
+            )
+        ],
+        responses={
+            status.HTTP_205_RESET_CONTENT: "Logout successful.",
+            status.HTTP_400_BAD_REQUEST: "Bad request, typically because of a malformed request body.",
+            status.HTTP_401_UNAUTHORIZED: "Unauthorized, typically because of invalid credentials.",
+        }
+    )
+    def post(self, request):
+        logger.info(
+            f"Logout POST request received for user: {request.user.email}")
+
         try:
-            request.user.auth_token.delete()
-            return Response({
-                "statusCode": status.HTTP_200_OK,
-                "message": "Logged out successfully."
-            }, status=status.HTTP_200_OK)
+            refresh_token = request.data['refresh']
+            logger.debug(f"Refresh token received: {refresh_token}")
+
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+
+            logger.info(
+                f"Token blacklisted successfully for user: {request.user.email}")
+            return custom_response(status_code=status.HTTP_205_RESET_CONTENT, message="Logout successful.", data=None)
 
         except Exception as e:
-            return Response({
-                "statusCode": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                "message": "An error occurred while logging out.",
-                "error": str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.error(
+                f"Logout failed for user: {request.user.email}, error: {str(e)}")
+            raise CustomAPIException(detail=str(
+                e), status_code=status.HTTP_400_BAD_REQUEST).get_full_details()
 
 
-class ChangePasswordView(APIView):
-    permission_classes = (IsAuthenticated,)
+class ChangePasswordView(generics.UpdateAPIView):
+    serializer_class = ChangePasswordSerializer
+    permission_classes = [IsAuthenticated]
+    model = User
 
-    @swagger_auto_schema(request_body=ChangePasswordSerializer)
-    def post(self, request, format=None):
-        serializer = ChangePasswordSerializer(data=request.data)
+    def get_object(self, queryset=None):
+        obj = self.request.user
+        return obj
+
+    def update(self, request, *args, **kwargs):
+        logger.info(
+            f"ChangePassword update request received for user: {request.user.email}")
+
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
 
         if serializer.is_valid():
-            user = self.request.user
-            old_password = serializer.data.get("old_password")
-            new_password = serializer.data.get("new_password")
+            if not self.object.check_password(serializer.data.get("old_password")):
+                logger.warning(
+                    f"Invalid old password provided by user: {request.user.email}")
+                return CustomAPIException(
+                    detail="Invalid Credential",
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    data={"old_password": ["Wrong password."]}
+                ).get_full_details()
 
-            if not user.check_password(old_password):
-                return Response({
-                    "statusCode": status.HTTP_400_BAD_REQUEST,
-                    "message": "Wrong password."
-                }, status=status.HTTP_400_BAD_REQUEST)
+            self.object.set_password(serializer.data.get("new_password"))
+            self.object.save()
+            logger.info(
+                f"Password updated successfully for user: {request.user.email}")
 
-            user.set_password(new_password)
-            user.save()
+            return custom_response(status_code=status.HTTP_200_OK, message='Password updated successfully', data=None)
 
-            return Response({
-                "statusCode": status.HTTP_200_OK,
-                "message": "Password updated successfully."
-            }, status=status.HTTP_200_OK)
+        logger.error(
+            f"Password update failed for user: {request.user.email}, errors: {serializer.errors}")
+        return CustomAPIException(detail=str(serializer.errors), status_code=status.HTTP_400_BAD_REQUEST).get_full_details()
 
-        return Response({
-            "statusCode": status.HTTP_400_BAD_REQUEST,
-            "message": "Invalid data.",
-            "error": serializer.errors,
-        }, status=status.HTTP_400_BAD_REQUEST)
+
+class DeleteAccount(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserSerializer
+
+    def get_object(self):
+        user_email = self.request.user.email
+        logger.info(f"Fetching user object for email: {user_email}")
+        return get_object_or_404(CustomUser, email=user_email)
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            user_email = request.user.email
+            logger.info(f"Delete request received for user: {user_email}")
+
+            paysita_user = self.get_object()
+            self.perform_destroy(paysita_user)
+            logger.info(f"User deleted successfully: {user_email}")
+
+            return custom_response(status_code=status.HTTP_200_OK, message="User deleted", data=None)
+        except CustomUser.DoesNotExist:
+            logger.warning(f"User not found for email: {user_email}")
+            return CustomAPIException(detail="User not found", status_code=status.HTTP_404_NOT_FOUND).get_full_details()
+        except Exception as e:
+            logger.error(f"Error deleting user {user_email}: {str(e)}")
+            return CustomAPIException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR).get_full_details()
+
+    def perform_destroy(self, instance):
+        instance.delete()
+        logger.info(f"User instance deleted: {instance.email}")
 
 
 class ReferralView(APIView):
@@ -265,19 +362,20 @@ class ReferralHistoryView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class DeleteAccount(DestroyAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = UserSerializer
 
-    def get_object(self):
-        return get_object_or_404(CustomUser, email=self.request.user.email)
+class GoogleAPIView(APIView):
+    permission_classes = [AllowAny]
 
-    def delete(self, request, *args, **kwargs):
+    def get(self, request, format=None):
+        token = "eyJhbGciOiJSUzI1NiIsImtpZCI6ImIyZjgwYzYzNDYwMGVkMTMwNzIxMDFhOGI0MjIwNDQzNDMzZGIyODIiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIzNTA1NTU0NTA2OTMtOWJhYTE3MjdxYzI4aTdpOGcwc3NoaDRhNTJhYTMzMW8uYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiIzNTA1NTU0NTA2OTMtZ2ppYnFhcXRxdDZxMW8wNjF2YXBzNDZjMGNzN3BvY2kuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTM1ODc2MTQxMzU4Mjg2NDcyNzAiLCJlbWFpbCI6ImdtYXJzaGFsMDcwQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoiR3JlYXRuZXNzIE1hcnNoYWwiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSVl6dnZLbXFHcWRfYzFwTG5qZG9vQXBrSU12ZGJUNTAwWTg4ZE9GSnBZdEQycDBJOXo9czk2LWMiLCJnaXZlbl9uYW1lIjoiR3JlYXRuZXNzIiwiZmFtaWx5X25hbWUiOiJNYXJzaGFsIiwiaWF0IjoxNzI1NDQ5Nzk1LCJleHAiOjE3MjU0NTMzOTV9.of5fqF5lC_I_3PnOh_G17a66SASvpOq6xkrrJj1Y0TyptTaWNHJB92Aoy7aOK17DO1gHS8gAQoLHMrSBusj0_5lKkdTx6nocDpSYkjCdjz6qUhQeE8Z8J_vP4pNGMM8kShfgijuFTeP1jn_vscF0E9hYRgRH2tKAh6KIpoKM0625b_GFdsj1pBg1MrpmQLC_k21ZUMLjY1yU70RKc4frwE9G1NvWc7YCO0CQ"
+        CLIENT_ID = "350555450693-gjibqaqtqt6q1o061vaps46c0cs7poci.apps.googleusercontent.com"
         try:
-            inshopper_user = self.get_object()
-            self.perform_destroy(inshopper_user)
-            return Response({"result": "user deleted"}, status=status.HTTP_200_OK)
-        except CustomUser.DoesNotExist:
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+            idinfo = id_token.verify_oauth2_token(
+                token, requests.Request(), "350555450693-gjibqaqtqt6q1o061vaps46c0cs7poci.apps.googleusercontent.com")
+
+            print("Token is valid:", idinfo)
+            return custom_response(status_code=status.HTTP_200_OK, message="User success", data=idinfo)
+
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return CustomAPIException(
+                detail=str(e), status_code=status.HTTP_404_NOT_FOUND).get_full_details()

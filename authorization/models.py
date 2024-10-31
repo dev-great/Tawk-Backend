@@ -56,6 +56,19 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return str(self.email)
 
+    def get_short_name(self):
+        """
+        Returns the short name for the user.
+        """
+        return self.first_name
+
+    def get_full_name(self):
+        """
+        Returns the full name for the user.
+        """
+        full_name = f"{self.first_name} {self.last_name}".strip()
+        return full_name if full_name else self.username
+
 
 class ReferralCode(models.Model):
     id = models.UUIDField(
@@ -99,29 +112,3 @@ class ReferralPointModel(models.Model):
     def __str__(self):
         return self.user_id.email
 
-
-class SocialMediaUser(models.Model):
-    id = models.UUIDField(
-        primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
-    user_id = models.OneToOneField('CustomUser', on_delete=models.CASCADE)
-    facebook_id = models.CharField(max_length=100, blank=True, null=True)
-    twitter_id = models.CharField(max_length=100, blank=True, null=True)
-    instagram_id = models.CharField(max_length=100, blank=True, null=True)
-    linkedin_id = models.CharField(max_length=100, blank=True, null=True)
-    pinterest_id = models.CharField(max_length=100, blank=True, null=True)
-    snapchat_id = models.CharField(max_length=100, blank=True, null=True)
-    tiktok_id = models.CharField(max_length=100, blank=True, null=True)
-    youtube_id = models.CharField(max_length=100, blank=True, null=True)
-    whatsapp_id = models.CharField(max_length=100, blank=True, null=True)
-    telegram_id = models.CharField(max_length=100, blank=True, null=True)
-    reddit_id = models.CharField(max_length=100, blank=True, null=True)
-    tumblr_id = models.CharField(max_length=100, blank=True, null=True)
-    skype_id = models.CharField(max_length=100, blank=True, null=True)
-    viber_id = models.CharField(max_length=100, blank=True, null=True)
-    discord_id = models.CharField(max_length=100, blank=True, null=True)
-    twitch_id = models.CharField(max_length=100, blank=True, null=True)
-    medium_id = models.CharField(max_length=100, blank=True, null=True)
-    signal_id = models.CharField(max_length=100, blank=True, null=True)
-
-    def __str__(self):
-        return f"Social Media IDs for {self.user.username}"

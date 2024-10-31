@@ -20,7 +20,7 @@ def send_order_email_confirmation(sender, instance, created, **kwargs):
         tawq_user = instance
         merge_data = {
             'tawq_user':  f"{tawq_user.email}",
-            'msg': f" Hi {tawq_user.email} My name is Great and I am very happy to welcome you to Tawq community! You have joined thousands of clients who are already skyrocketing their sales with Tawq by utilising our intuitive and user-friendly platform to showcase and sell their products. They also have access to social media integration, AI shop assistant and associated support and guidance resources. To enjoy all this and more, complete your registration and kyc process now. Welcome to the community of elite entrepreneurs and have a wonderful experience."
+            'msg': f" Hi {tawq_user.email} My name is Great and I am very happy to welcome you to Tawk community! You have joined thousands of clients who are already skyrocketing their sales with Tawk by utilising our intuitive and user-friendly platform to showcase and scale their services. They also have access to social media integration, AI shop assistant and associated support and guidance resources. To enjoy all this and more, complete your registration and kyc process now. Welcome to the community of elite entrepreneurs and have a wonderful experience."
         }
         html_body = render_to_string(
             "emails/congratulation_mail.html", merge_data)

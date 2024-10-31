@@ -9,9 +9,9 @@ from drf_yasg import openapi
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Tawq API Documentation",
+        title="Tawk API Documentation",
         default_version='v1',
-        description="Tawq is a cutting-edge platform that meets the needs of content creators,\n tutors, scholars and basically anyone into any form of content creation.",
+        description="Tawq is a cutting-edge platform that meets the needs of content creators,\n individuals, businesses and basically anyone into any form of content creation.",
         terms_of_service="https://www.google.com/policies/terms/",
         contact=openapi.Contact(email="lets@tawq.io"),
         license=openapi.License(name="BSD License"),
@@ -22,15 +22,16 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('auth/', include('drf_social_oauth2.urls', namespace='drf')),
-
+    
     # CUSTOM URLS
     path('api/v1/authorization/',
          include('authorization.urls', namespace='authorization')),
     path('api/v1/subscription/',
          include('subscription.urls', namespace='subscription')),
     path('api/v1/post/',
-         include(('post.urls', 'post'), namespace='post-section')),
+         include('post.urls', namespace='post-section')),
+    path('api/v1/socials/',
+         include('linked_account.urls', namespace='linked-social-account')),
 
 
     # APPLICATION DOCUMENTATION
