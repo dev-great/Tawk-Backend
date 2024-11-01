@@ -1,11 +1,12 @@
-from django.urls import path, include, re_path
-from authorization.views import ChangePasswordView, DeleteAccount, GoogleAPIView, LoginView, Logout, ReferralHistoryView, ReferralView, RegisterView, TokenRefreshView, TokenVerifyView, UserProfileView
-
-app_name = 'authorization'
+from django.urls import path, re_path, include
+from authorization.views import (
+    ChangePasswordView, DeleteAccount, GoogleAPIView, LoginView, Logout,
+    ReferralHistoryView, ReferralView, RegisterView, TokenRefreshView,
+    TokenVerifyView, UserProfileView
+)
 
 urlpatterns = [
-    path('login/', LoginView.as_view(),
-         name='token_obtain_pair'),
+    path('login/', LoginView.as_view(), name='token_obtain_pair'),
     path('register/', RegisterView.as_view()),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
@@ -18,5 +19,4 @@ urlpatterns = [
     path('referral_history/', ReferralHistoryView.as_view()),
     re_path(r'^social/', include('drf_social_oauth2.urls', namespace='social')),
     path('google-verify-api/', GoogleAPIView.as_view(), name='google_verify'),
-
 ]

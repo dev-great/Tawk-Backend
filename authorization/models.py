@@ -19,16 +19,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         max_length=50, null=True, blank=True)
     last_name = models.CharField(
         max_length=50, null=True, blank=True)
-    phone_number = models.CharField(
-        max_length=20, null=True, blank=True)
-    state = models.CharField(
-        max_length=100, null=True, blank=True)
-    postal_code = models.CharField(
-        max_length=100, null=True, blank=True)
-    country = models.CharField(
-        max_length=100, null=True, blank=True)
-    address = models.CharField(
+    account_type = models.CharField(
         max_length=200, null=True, blank=True)
+   
     groups = models.ManyToManyField(
         Group,
         verbose_name=_('groups'),
@@ -50,8 +43,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
     EMAIL_FIELD = 'email'
     PASSWORD_FIELD = 'password'
-    REQUIRED_FIELDS = ['first_name', 'last_name',
-                       'phone_number', 'state', 'postal_code', 'country', 'address',]
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'account_type', ]
 
     def __str__(self):
         return str(self.email)

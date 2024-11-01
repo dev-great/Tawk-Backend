@@ -17,14 +17,14 @@ User = get_user_model()
 @receiver(post_save, sender=User)
 def send_order_email_confirmation(sender, instance, created, **kwargs):
     if created:
-        tawq_user = instance
+        tawk_user = instance
         merge_data = {
-            'tawq_user':  f"{tawq_user.email}",
-            'msg': f" Hi {tawq_user.email} My name is Great and I am very happy to welcome you to Tawk community! You have joined thousands of clients who are already skyrocketing their sales with Tawk by utilising our intuitive and user-friendly platform to showcase and scale their services. They also have access to social media integration, AI shop assistant and associated support and guidance resources. To enjoy all this and more, complete your registration and kyc process now. Welcome to the community of elite entrepreneurs and have a wonderful experience."
+            'tawk_user':  f"{tawk_user.first_name}",
+            'msg': f"My name is Favour and I am very happy to welcome you to Tawk community! You have joined thousands of clients who are already skyrocketing their sales with Tawk by utilising our intuitive and user-friendly platform to showcase and scale their services. Welcome to the community of elite entrepreneurs and have a wonderful experience."
         }
         html_body = render_to_string(
-            "emails/congratulation_mail.html", merge_data)
-        msg = EmailMultiAlternatives(subject="Discover more with Tawq", from_email=settings.EMAIL_HOST_USER, to=[
+            "emails/welcome_email.html", merge_data)
+        msg = EmailMultiAlternatives(subject="Discover more with Tawk Tools", from_email=settings.EMAIL_HOST_USER, to=[
                                      instance.email], body=" ",)
         msg.attach_alternative(html_body, "text/html")
         return msg.send(fail_silently=False)
@@ -52,13 +52,13 @@ def create_referral_bonus(sender, instance, *args, **kwargs):
 @ receiver(reset_password_token_created)
 def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
 
-    tawq_user = instance
+    tawk_user = instance
     merge_data = {
-        'tawq_user':  f"{tawq_user.email}",
-        'msg': f" Hi { reset_password_token.user.first_name} { reset_password_token.user.last_name } here is your password reset token: {reset_password_token.key} Copy and past in your app to continue with your password reset."
+        'tawk_user':  reset_password_token.user.email,
+        'otp': reset_password_token.key
     }
-    html_body = render_to_string("emails/congratulation_mail.html", merge_data)
-    msg = EmailMultiAlternatives(subject="Tawq Password Reset Token", from_email=settings.EMAIL_HOST_USER, to=[
+    html_body = render_to_string("emails/reset_password_email.html", merge_data)
+    msg = EmailMultiAlternatives(subject="Tawk Password Reset Token", from_email=settings.EMAIL_HOST_USER, to=[
                                  reset_password_token.user.email], body=" ",)
     msg.attach_alternative(html_body, "text/html")
     return msg.send(fail_silently=False)

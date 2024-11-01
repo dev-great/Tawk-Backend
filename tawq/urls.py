@@ -25,20 +25,18 @@ urlpatterns = [
     
     # CUSTOM URLS
     path('api/v1/authorization/',
-         include('authorization.urls', namespace='authorization')),
+         include('authorization.urls')),
     path('api/v1/subscription/',
-         include('subscription.urls', namespace='subscription')),
+         include('subscription.urls')),
     path('api/v1/post/',
-         include('post.urls', namespace='post-section')),
+         include('post.urls')),
     path('api/v1/socials/',
-         include('linked_account.urls', namespace='linked-social-account')),
+         include('linked_account.urls')),
 
 
     # APPLICATION DOCUMENTATION
-    path('api/v1/swagger-docs/', schema_view.with_ui('swagger',
+    path('api/v1/docs/', schema_view.with_ui('swagger',
          cache_timeout=0), name='schema-swagger-ui'),
-    path('api/v1/redoc/', schema_view.with_ui('redoc',
-         cache_timeout=0), name='schema-redoc'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -154,9 +154,7 @@ SWAGGER_SETTINGS = {
             'name': 'Authorization',
             'in': 'header'
         },
-        'Basic': {
-            'type': 'basic'
-        }
+     
     }
 }
 
@@ -169,6 +167,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
 ]
 
@@ -201,21 +200,11 @@ WSGI_APPLICATION = 'tawq.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('ENGINE'),
+        'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.environ.get('DB_NAME'),
-#         'USER': os.environ.get('DB_USER'),
-#         'PASSWORD': os.environ.get('DB_PASSWORD'),
-#         'HOST': os.environ.get('DB_HOST'),
-#         'PORT': os.environ.get('DB_PORT'),
-#     }
-# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -294,6 +283,7 @@ LOGGING = {
 }
 
 AUTH_USER_MODEL = 'authorization.CustomUser'
+SOCIAL_AUTH_URL_NAMESPACE = "authorization:social"
 
 
 STATIC_URL = '/static/'
@@ -320,10 +310,31 @@ MEDIA_URL = '/media/'
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 
-if 'DATABASE_URL' in os.environ:
-    import dj_database_url
-    DATABASES = {'default': dj_database_url.config()}
 
+
+# Google configuration
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = "225033688673-bbilcdoj573ord12e5s6busgq5tshc32.apps.googleusercontent.com",
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = "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",
+SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'http://localhost:8000/api/v1/authorization/social/complete/google/'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
+]
+
+SOCIAL_AUTH_APPLE_ID_CLIENT = 'com.yinoral.app.us-service'
+SOCIAL_AUTH_APPLE_ID_TEAM = 'CHYWU6M75M'
+SOCIAL_AUTH_APPLE_ID_KEY = 'ZKZBVHBCUL'
+SOCIAL_AUTH_APPLE_ID_SECRET = """ 
+-----BEGIN PRIVATE KEY-----
+MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgZY30xPdpYvUNP/h+
+5vAe28ft2aPxZey7etGtyIIbsh2gCgYIKoZIzj0DAQehRANCAATDESHtpSGluAuU
+06Xv/BpCfUjLwCNbuadD/VAz5haHWDH4ww2vLkYo3sKsz9prw9ZOdenkxei1bnfz
+abq1WSAk
+-----END PRIVATE KEY-----
+"""
+
+
+# ALL SOCIAL INTEGRATIONS
 
 
 # Facebook configuration
@@ -343,12 +354,10 @@ SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
     'fields': 'id,name,email'
 }
 
-
 # Facebook App credentials
 FACEBOOK_APP_ID = 'your_facebook_app_id'
 FACEBOOK_APP_SECRET = 'your_facebook_app_secret'
-FACEBOOK_REDIRECT_URI = 'https://your-redirect-uri.com/facebook/callback'  # Update with your actual redirect URI
-
+FACEBOOK_REDIRECT_URI = 'https://your-redirect-uri.com/facebook/callback'  
 
 # Google configuration
 GOOGLE_CLIENT_ID = 'your_google_client_id'
@@ -357,23 +366,11 @@ GOOGLE_REDIRECT_URI = 'your_redirect_uri'
 
 INSTAGRAM_CLIENT_ID = 'your_instagram_client_id'
 INSTAGRAM_CLIENT_SECRET = 'your_instagram_client_secret'
-INSTAGRAM_REDIRECT_URI = 'your_redirect_uri'  # The URI where you want to redirect after login
-
+INSTAGRAM_REDIRECT_URI = 'your_redirect_uri' 
 
 SLACK_CLIENT_ID = '<your-slack-client-id>'
 SLACK_CLIENT_SECRET = '<your-slack-client-secret>'
 SLACK_REDIRECT_URI = '<your-slack-redirect-uri>'
-
-
-# Google configuration
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = "225033688673-bbilcdoj573ord12e5s6busgq5tshc32.apps.googleusercontent.com",
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = "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",
-SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'http://localhost:8000/api/v1/authorization/social/complete/google/'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
-    'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile',
-]
-
 
 
 
@@ -393,7 +390,7 @@ SIMPLE_JWT = {
     "JWK_URL": None,
     "LEEWAY": 0,
 
-    "AUTH_HEADER_TYPES": ("JWT",),
+    "AUTH_HEADER_TYPES": ("Bearer",),
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",

@@ -1,8 +1,12 @@
 import logging
+import random
 from rest_framework import status
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from exceptions.custom_apiexception_class import *
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 from django.contrib.auth.models import User
 from rest_framework import generics
 from utils.custom_response import custom_response
@@ -14,9 +18,11 @@ from rest_framework.generics import DestroyAPIView
 from rest_framework.authtoken.models import Token
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
+from django.template import TemplateDoesNotExist
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from dotenv import load_dotenv
+from django.core.cache import cache  
 from django.utils.decorators import method_decorator
 from authorization.models import CustomUser, Referral, ReferralCode
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
@@ -24,7 +30,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from authorization.serializer import ChangePasswordSerializer, TokenObtainPairResponseSerializer, TokenRefreshResponseSerializer, TokenVerifyResponseSerializer,ReferralCodeSerializer, ReferralHistorySerializer, UserSerializer
 
-
+otp_storage = {}
 load_dotenv()
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -58,9 +64,9 @@ class RegisterView(APIView):
             logger.info(f"User registered: {serializer.data['email']}")
             return custom_response(status_code=status.HTTP_201_CREATED, message="Success", data=response_data)
         else:
-            error_msg = str(serializer.errors)
+            error_msg = serializer.errors
             logger.error(f"Registration error: {error_msg}")
-            return CustomAPIException(detail=str(serializer.errors), status_code=status.HTTP_400_BAD_REQUEST).get_full_details()
+            return CustomAPIException(detail=serializer.errors, status_code=status.HTTP_400_BAD_REQUEST).get_full_details()
 
 
 class LoginView(TokenObtainPairView):
@@ -379,3 +385,57 @@ class GoogleAPIView(APIView):
         except Exception as e:
             return CustomAPIException(
                 detail=str(e), status_code=status.HTTP_404_NOT_FOUND).get_full_details()
+
+
+class EmailOTPAuthentication(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        email = request.user.email
+        otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        # Store OTP in cache with a timeout (e.g., 5 minutes)
+        cache.set(email, otp, timeout=300)
+        merge_data = {
+            'tawk_user': request.user,
+            'otp': otp,
+        }
+        try:
+            html_body = render_to_string(
+            "otp_mail.html", merge_data)
+        
+        except TemplateDoesNotExist as template_error:
+            logger.error(f"Template not found: {template_error}")
+            html_body = f"""Dear {email},\n\nYour OTP is: {
+                otp}\n\nPlease use this OTP to reset your password."""
+
+        msg = EmailMultiAlternatives(
+            subject="Yinoral Email Verification.",
+            from_email=settings.EMAIL_HOST_USER,
+            to=[email],
+            body=" ",
+        )
+        msg.attach_alternative(html_body, "text/html")
+        
+        try:
+            msg.send(fail_silently=False)
+            logger.info(f"OTP sent to {email}")
+        except Exception as e:
+            logger.error(f"Failed to send email: {e}")
+            return custom_response(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, message="Failed to send OTP.", data=None)
+
+        return custom_response(status_code=status.HTTP_200_OK, message="OTP sent to your email.", data=None)
+
+    def put(self, request):
+        email = request.user.email
+        otp_entered = request.data.get('otp')
+
+        otp_stored = cache.get(email)
+        if email not in otp_stored:
+            return CustomAPIException(detail="OTP not sent for this email.", status_code=status.HTTP_400_BAD_REQUEST).get_full_details()
+
+        if otp_entered == otp_stored:
+            cache.delete(email)
+            return custom_response(status_code=status.HTTP_200_OK, message="Email verification successful.", data=None)
+        else:
+            return CustomAPIException(detail="Incorrect OTP.", status_code=status.HTTP_400_BAD_REQUEST).get_full_details()
+
+
