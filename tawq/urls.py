@@ -39,7 +39,7 @@ urlpatterns = [
          cache_timeout=0), name='schema-swagger-ui'),
 ]
 
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(STATIC_URL, document_root=STATIC_ROOT)
 
 
 admin.site.site_header = 'Tawq Tools'

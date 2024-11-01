@@ -287,8 +287,9 @@ SOCIAL_AUTH_URL_NAMESPACE = "authorization:social"
 
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 CLOUDINARY_URL = 'cloudinary://387625877385614:zZrsexxvBVryHpiyJ6DG2tZrl5Y@dbrvleydy'
 
@@ -310,6 +311,8 @@ MEDIA_URL = '/media/'
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 
+# If file isn’t necessary, WhiteNoise ignore missing files
+WHITENOISE_ALLOW_ALL_ORIGINS = True
 
 
 # Google configuration
