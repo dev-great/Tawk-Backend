@@ -22,7 +22,7 @@ cron-descriptor==1.4.3
 cryptography==41.0.3
 defusedxml==0.7.1
 dj-database-url==2.1.0
-Django==4.2.4
+Django==5.0.6
 django-allauth==0.54.0
 django-celery-beat==2.6.0
 django-ckeditor==6.7.1
@@ -40,7 +40,7 @@ djangorestframework==3.14.0
 djangorestframework-simplejwt==5.3.1
 drf-social-oauth2==3.1.0
 drf-standardized-errors==0.14.1
-drf-yasg==1.21.6
+drf-yasg==1.21.7
 facebook-sdk==3.1.0
 firebase-admin==6.5.0
 google-api-core==2.18.0
@@ -113,4 +113,4 @@ urllib3==1.26.16
 uuid==1.30
 vine==5.1.0
 wcwidth==0.2.13
-whitenoise==6.2.0
+whitenoise==6.6.0
