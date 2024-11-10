@@ -11,9 +11,9 @@ schema_view = get_schema_view(
     openapi.Info(
         title="Tawk API Documentation",
         default_version='v1',
-        description="Tawq is a cutting-edge platform that meets the needs of content creators,\n individuals, businesses and basically anyone into any form of content creation.",
+        description="TawqKis a cutting-edge platform that meets the needs of content creators,\n individuals, businesses and basically anyone into any form of content creation.",
         terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="lets@tawq.io"),
+        contact=openapi.Contact(email="lets@tawkglobal.com"),
         license=openapi.License(name="BSD License"),
     ),
     public=True,
@@ -24,17 +24,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     
     # CUSTOM URLS
-    path('api/v1/authorization/',
-         include('authorization.urls')),
-    path('api/v1/subscription/',
-         include('subscription.urls')),
-    path('api/v1/post/',
-         include('post.urls')),
-    path('api/v1/webhook/',
-         include('webhook.urls')),
-    path('api/v1/socials/',
-         include('linked_account.urls')),
-
+    path('api/v1/authorization/', include('authorization.urls')),
+    path('api/v1/subscription/', include('subscription.urls')),
+    path('api/v1/post/', include('post.urls')),
+    path('api/v1/socials/', include('linked_account.urls')),
+    path('api/v1/webhook/', include('webhook.urls')),
 
 ]
 
@@ -48,6 +42,6 @@ urlpatterns += [
 urlpatterns += static(STATIC_URL, document_root=STATIC_ROOT)
 
 
-admin.site.site_header = 'Tawq Tools'
+admin.site.site_header = 'Tawk Tools'
 admin.site.index_title = 'Administrators Dashboard'
 admin.site.site_title = 'Control Panel'

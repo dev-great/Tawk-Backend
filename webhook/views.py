@@ -5,12 +5,15 @@ import hmac
 import hashlib
 from django.conf import settings
 from django.views import View
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from stripe.error import SignatureVerificationError
 from exceptions.custom_apiexception_class import *
 from subscription.models import Subscription
 from utils.custom_response import custom_response
+from rest_framework.permissions import AllowAny
 
 
 
@@ -18,10 +21,26 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 class WebhookView(View):
+    permission_classes = [AllowAny]
+    
     # DISBABLE CSRF FOR WEBHOOK REQUESTS
-    @method_decorator(csrf_exempt)  
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
+
+    @method_decorator(csrf_exempt)
+    @swagger_auto_schema(
+        operation_description="Webhook endpoint to handle incoming data",
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'event': openapi.Schema(type=openapi.TYPE_STRING, description='Event type'),
+                'data': openapi.Schema(type=openapi.TYPE_OBJECT, description='Event data payload')
+            }
+        ),
+        responses={
+            200: openapi.Response(description="Webhook processed successfully"),
+            400: openapi.Response(description="Invalid request or verification failure"),
+            404: openapi.Response(description="Subscription not found"),
+        },
+    )
 
     def post(self, request, *args, **kwargs):
         try:

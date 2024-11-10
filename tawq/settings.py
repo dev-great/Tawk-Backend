@@ -95,6 +95,7 @@ INSTALLED_APPS = [
     'utils',
     'wallet',
     'post',
+    'webhook',
     'linked_account',
 ]
 
@@ -118,8 +119,7 @@ REST_FRAMEWORK = {
         'drf_social_oauth2.authentication.SocialAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-        'rest_framework.permissions.AllowAny',
+    'rest_framework.permissions.IsAuthenticated',
     ],
 }
 
@@ -157,6 +157,7 @@ SWAGGER_SETTINGS = {
      
     }
 }
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
