@@ -79,6 +79,7 @@ psycopg2-binary==2.9.9
 pyasn1==0.6.0
 pyasn1_modules==0.4.0
 pycparser==2.21
+pycryptodome==3.21.0
 PyJWT==2.8.0
 pyotp==2.8.0
 pyparsing==3.1.2
@@ -104,6 +105,7 @@ six==1.16.0
 social-auth-app-django==5.4.0
 social-auth-core==4.5.2
 sqlparse==0.4.4
+stripe==11.2.0
 tweepy==4.14.0
 typing_extensions==4.10.0
 tzdata==2024.1
