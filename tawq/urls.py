@@ -30,6 +30,8 @@ urlpatterns = [
          include('subscription.urls')),
     path('api/v1/post/',
          include('post.urls')),
+    path('api/v1/webhook/',
+         include('webhook.urls')),
     path('api/v1/socials/',
          include('linked_account.urls')),
 

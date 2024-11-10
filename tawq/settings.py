@@ -228,6 +228,17 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+
+
+FLW_PUBLIC_KEY = os.getenv("FLW_PUBLIC_KEY")
+FLW_SECRET_KEY = os.getenv("FLW_SECRET_KEY")
+FLW_ENCRIPTION_KEY = os.getenv("FLW_ENCRIPTION_KEY")
+FLW_WEBHOOK_SECRET = os.getenv("FLW_WEBHOOK_SECRET")
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -419,6 +430,6 @@ SIMPLE_JWT = {
 
 
 
-if 'DATABASE_URL' in os.environ:
-    import dj_database_url
-    DATABASES = {'default': dj_database_url.config()}
+# if 'DATABASE_URL' in os.environ:
+#     import dj_database_url
+#     DATABASES = {'default': dj_database_url.config()}
