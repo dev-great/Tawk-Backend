@@ -41,7 +41,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  
-    "https://tawk-backend-46a670866b8a.herokuarp.com", 
+    "https://tawk-backend-46a670866b8a.herokuapp.com", 
 ]
 CORS_ALLOW_METHODS = [
     "DELETE",
