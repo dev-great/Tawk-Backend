@@ -1,13 +1,13 @@
-
-from datetime import timezone
 import requests
 from django.conf import settings
-from .models import SubscriptionPlan, Subscription
+from django.utils import timezone
+from datetime import timedelta
+from .models import Card, SubscriptionPlan, Subscription
 from .serializers import SubscriptionPlanSerializer, SubscriptionSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
+from django.db import transaction
 from .utils import encrypt_data, generate_tx_ref
 from rest_framework import status
 from django.contrib.auth import get_user_model
@@ -86,53 +86,36 @@ class InitiateSubscriptionView(APIView):
                     
                     # Handle PIN authorization mode
                     if auth_mode == "pin":
-                        return Response({
-                            "status": "authorization_required",
-                            "message": "PIN required to complete the payment",
+                        return custom_response(status_code=status.HTTP_202_ACCEPTED, message="PIN required to complete the payment", data={
+                        
                             "mode": "pin",
                             "fields": ["pin"],
                             "tx_ref": tx_ref
-                        }, status=status.HTTP_200_OK)
+                        })  
 
                     # Handle AVS authorization mode
                     elif auth_mode == "avs_noauth":
-                        return Response({
-                            "status": "authorization_required",
-                            "message": "Billing details required to complete the payment",
+                        return  custom_response(status_code=status.HTTP_202_ACCEPTED, message="Billing details required to complete the payment", data={
                             "mode": "avs_noauth",
                             "fields": ["city", "address", "state", "country", "zipcode"],
                             "tx_ref": tx_ref
-                        }, status=status.HTTP_200_OK)
+                        })  
 
                     # Handle any other authorization modes if needed
                     else:
-                        return Response({
-                            "status": "error",
-                            "message": "Unsupported authorization mode",
-                            "mode": auth_mode,
-                        }, status=status.HTTP_400_BAD_REQUEST)
+                        return CustomAPIException(detail= "Unsupported authorization mode", status_code=status.HTTP_400_BAD_REQUEST)
+
 
                 # Successful payment initiation
                 elif response_data["status"] == "success":
-                    return Response({
-                        "status": "success",
-                        "message": "Payment initiated successfully.",
-                        "data": response_data["data"]
-                    }, status=status.HTTP_200_OK)
+                    return  custom_response(status_code=status.HTTP_200_OK, message="Payment initiated successfully.", data=response_data["data"])  
 
                 # Other error handling
                 else:
-                    return Response({
-                        "status": "error",
-                        "message": response_data["message"]
-                    }, status=status.HTTP_400_BAD_REQUEST)
+                    return CustomAPIException(detail=str(response_data["message"]), status_code=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            return Response({
-                "status": "error",
-                "message": str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+            return CustomAPIException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) 
     
 
 class ValidateSubscriptionView(APIView):
@@ -142,7 +125,6 @@ class ValidateSubscriptionView(APIView):
         flw_ref = request.data.get("flw_ref")
         otp = request.data.get("otp")
 
-        # Prepare the authorization payload with the PIN
         authorization_payload = {
             "flw_ref": flw_ref,
             "otp": otp,
@@ -155,24 +137,69 @@ class ValidateSubscriptionView(APIView):
         }
 
         try:
-            # Complete the charge with the authorization payload
-            response = requests.post('https://api.flutterwave.com/v3/validate-charge', json=authorization_payload, headers=headers)
-            response_data = response.json()
-
+            response_data = self._validate_payment(authorization_payload, headers)
             if response_data["status"] == "success":
-                return Response({
-                    "status": "success",
-                    "message": "Payment completed successfully.",
-                    "data": response_data["data"]
-                }, status=status.HTTP_200_OK)
+                subscription, card_data = self._process_subscription(request.user, response_data["data"])
+                self._save_card_info(subscription, card_data)
+                
+                return custom_response(
+                    status_code=status.HTTP_200_OK,
+                    message="Payment completed and subscription created successfully.",
+                    data=response_data["data"]
+                )
             else:
-                return Response({
-                    "status": "error",
-                    "message": response_data["message"]
-                }, status=status.HTTP_400_BAD_REQUEST)
+                raise CustomAPIException(
+                    detail=str(response_data["message"]),
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
 
         except Exception as e:
-            return Response({
-                "status": "error",
-                "message": str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise CustomAPIException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def _validate_payment(self, payload, headers):
+        """Helper function to handle payment validation."""
+        response = requests.post(
+            'https://api.flutterwave.com/v3/validate-charge',
+            json=payload,
+            headers=headers
+        )
+        return response.json()
+
+    @transaction.atomic
+    def _process_subscription(self, user, data):
+        """Creates or updates a subscription and returns the subscription and card data."""
+        tx_ref = data.get("tx_ref")
+        customer_id = data.get("customer")
+        plan_id = data.get("plan")
+
+        # Get or create subscription plan and expiration date
+        plan = SubscriptionPlan.objects.get(plan_id=plan_id)
+        expiration_date = timezone.now() + timedelta(days=plan.duration)
+
+        # Update or create subscription atomically
+        subscription, _ = Subscription.objects.update_or_create(
+            user=user,
+            defaults={
+                "plan": plan,
+                "start_date": timezone.now(),
+                "status": data.get("processor_response"),
+                "expiration_date": expiration_date,
+                "tx_ref": tx_ref,
+                "customer_id": customer_id.get("id"),
+                "is_active": True,
+            }
+        )
+        return subscription, data.get("card")
+
+    def _save_card_info(self, subscription, card_data):
+        """Saves card information if available."""
+        if card_data:
+            Card.objects.create(
+                subscription=subscription,
+                first_6digits=card_data["first_6digits"],
+                last_4digits=card_data["last_4digits"],
+                issuer=card_data["issuer"],
+                country=card_data["country"],
+                card_type=card_data["type"],
+                expiry_date=card_data["expiry"]
+            )

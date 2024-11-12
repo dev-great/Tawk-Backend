@@ -31,6 +31,7 @@ class Subscription(models.Model):
     expiration_date = models.DateTimeField()
     payment_months = models.PositiveIntegerField(default=1)
     tx_ref = models.CharField(max_length=250, blank=True, null=True)
+    status = models.CharField(max_length=250, blank=True, null=True)
     customer_id = models.CharField(max_length=250, blank=True, null=True)
     auto_renew = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -64,6 +65,7 @@ class Subscription(models.Model):
             plan_name=self.plan.name, 
             plan_duration=self.plan.duration, 
             plan_price=self.plan.price,
+            status = self.status,
             user=self.user,
             customer_id=self.customer_id,
             start_date = self.start_date,
@@ -88,6 +90,7 @@ class Billing(models.Model):
     tx_ref = models.CharField(max_length=100, blank=True, null=True)
     expiration_date = models.DateTimeField()
     gateway = models.CharField(max_length=20, choices=PROVIDER_CHOICES, default='Flutterwave')
+    status = models.CharField(max_length=250, blank=True, null=True)
     plan_name = models.CharField(max_length=100)
     customer_id = models.CharField(max_length=250, blank=True, null=True)
     plan_duration = models.IntegerField()
@@ -95,3 +98,18 @@ class Billing(models.Model):
 
     def __str__(self):
         return f"{self.user_id} - {self.amount} {self.currency} on {self.payment_date}"
+
+
+class Card(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
+    subscription = models.ForeignKey('Subscription', on_delete=models.CASCADE, related_name='cards')
+    first_6digits = models.CharField(max_length=6)
+    last_4digits = models.CharField(max_length=4)
+    issuer = models.CharField(max_length=50)
+    country = models.CharField(max_length=2)
+    card_type = models.CharField(max_length=20)
+    expiry_date = models.CharField(max_length=5)  # Format MM/YY
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.issuer} - {self.first_6digits}******{self.last_4digits}"

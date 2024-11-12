@@ -1,5 +1,6 @@
 import logging
 import random
+from datetime import timedelta
 from rest_framework import status
 from google.oauth2 import id_token
 from google.auth.transport import requests
@@ -56,9 +57,18 @@ class RegisterView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             refresh = RefreshToken.for_user(user)
+            response = Response()
+            response.set_cookie(
+                'refresh_token', 
+                str(refresh),  
+                max_age=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'], 
+                expires=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],  
+                secure=True,  
+                httponly=True, 
+                samesite='Lax',  
+            )
             response_data = {
                 'user': serializer.data,
-                'refresh': str(refresh),
                 'access': str(refresh.access_token),
             }
             logger.info(f"User registered: {serializer.data['email']}")
@@ -109,10 +119,26 @@ class LoginView(TokenObtainPairView):
 
         user_data = UserSerializer(profile).data
 
+        # Create the refresh token for the user
+        refresh = RefreshToken.for_user(profile)
+
+        # Create the response object
+        response = Response()
+
+        # Set the refresh token as a cookie
+        response.set_cookie(
+            'refresh_token',  # Cookie name
+            str(refresh),  # Cookie value (converted to string)
+            max_age= timedelta(days=7),
+            expires= timedelta(days=7), 
+            secure=True,  # Ensure this is sent over HTTPS
+            httponly=True,  # Prevent JavaScript access to the cookie
+            samesite='Lax',  # CSRF protection
+        )
+
         # Include user details and tokens in the response
         response_data = {
             "auth": {
-                "refresh": serializer.validated_data['refresh'],
                 "access": serializer.validated_data['access'],
             },
             "user": user_data,
