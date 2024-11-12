@@ -57,22 +57,28 @@ class RegisterView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             refresh = RefreshToken.for_user(user)
-            response = Response()
-            response.set_cookie(
-                'refresh_token', 
-                str(refresh),  
-                max_age=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'], 
-                expires=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],  
-                secure=True,  
-                httponly=True, 
-                samesite='Lax',  
+            logger.info(f"Generated refresh token: {str(refresh)}")
+            response = custom_response(
+                status_code=status.HTTP_201_CREATED,
+                message="Success",
+                data={
+                    'user': serializer.data,
+                    'access': str(refresh.access_token),
+                }
             )
-            response_data = {
-                'user': serializer.data,
-                'access': str(refresh.access_token),
-            }
+
+            response.set_cookie(
+                'refresh_token',
+                str(refresh),
+                max_age=timedelta(days=7),
+                expires=timedelta(days=7),
+                secure=True, 
+                httponly=True,
+                samesite='Lax',
+            )
+
             logger.info(f"User registered: {serializer.data['email']}")
-            return custom_response(status_code=status.HTTP_201_CREATED, message="Success", data=response_data)
+            return response
         else:
             error_msg = serializer.errors
             logger.error(f"Registration error: {error_msg}")
@@ -88,6 +94,7 @@ class LoginView(TokenObtainPairView):
         }
     )
     def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
         logger.info("Login request received.")
         print(request.data)
         serializer = self.get_serializer(data=request.data)
@@ -119,24 +126,34 @@ class LoginView(TokenObtainPairView):
 
         user_data = UserSerializer(profile).data
 
-        # Create the refresh token for the user
         refresh = RefreshToken.for_user(profile)
+        logger.info(f"Generated refresh token: {str(refresh)}")
 
-        # Create the response object
-        response = Response()
+        response = Response({
+            "auth": {
+                "access": serializer.validated_data['access'],
+            },
+            "user": user_data,
+        })
 
-        # Set the refresh token as a cookie
-        response.set_cookie(
-            'refresh_token',  # Cookie name
-            str(refresh),  # Cookie value (converted to string)
-            max_age= timedelta(days=7),
-            expires= timedelta(days=7), 
-            secure=True,  # Ensure this is sent over HTTPS
-            httponly=True,  # Prevent JavaScript access to the cookie
-            samesite='Lax',  # CSRF protection
-        )
+        try:
+            response.set_cookie(
+                'refresh_token', 
+                str(refresh), 
+                max_age=timedelta(days=7),
+                expires=timedelta(days=7),
+                secure=True,  
+                httponly=True,  
+                samesite='Lax', 
+            )
+        except Exception as e:
+            return CustomAPIException(
+                detail=f"Error setting cookie: {str(e)}", 
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            ).get_full_details()
 
-        # Include user details and tokens in the response
+        return response
+
         response_data = {
             "auth": {
                 "access": serializer.validated_data['access'],
