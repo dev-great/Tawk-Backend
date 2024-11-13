@@ -1,158 +1,396 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+    <title>
+
+    </title>
+    <!--[if !mso]><!-- -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!--<![endif]-->
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Simple Transactional Email</title>
-    <style media="all" type="text/css">
-@media all {
-  .btn-primary table td:hover {
-    background-color: #F15A3B !important;
-  }
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type="text/css">
+        #outlook a {
+            padding: 0;
+        }
 
-  .btn-primary a:hover {
-    background-color: #F15A3B !important;
-    border-color: #F15A3B !important;
-  }
-}
-@media only screen and (max-width: 640px) {
-  .main p,
-.main td,
-.main span {
-    font-size: 16px !important;
-  }
+        .ReadMsgBody {
+            width: 100%;
+        }
 
-  .wrapper {
-    padding: 8px !important;
-  }
+        .ExternalClass {
+            width: 100%;
+        }
 
-  .content {
-    padding: 0 !important;
-  }
+        .ExternalClass * {
+            line-height: 100%;
+        }
 
-  .container {
-    padding: 0 !important;
-    padding-top: 8px !important;
-    width: 100% !important;
-  }
+        body {
+            margin: 0;
+            padding: 0;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
 
-  .main {
-    border-left-width: 0 !important;
-    border-radius: 0 !important;
-    border-right-width: 0 !important;
-  }
+        table,
+        td {
+            border-collapse: collapse;
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
 
-  .btn table {
-    max-width: 100% !important;
-    width: 100% !important;
-  }
+        img {
+            border: 0;
+            height: auto;
+            line-height: 100%;
+            outline: none;
+            text-decoration: none;
+            -ms-interpolation-mode: bicubic;
+        }
 
-  .btn a {
-    font-size: 16px !important;
-    max-width: 100% !important;
-    width: 100% !important;
-  }
-}
-@media all {
-  .ExternalClass {
-    width: 100%;
-  }
+        p {
+            display: block;
+            margin: 13px 0;
+        }
+    </style>
+    <!--[if !mso]><!-->
+    <style type="text/css">
+        @media only screen and (max-width:480px) {
+            @-ms-viewport {
+                width: 320px;
+            }
+            @viewport {
+                width: 320px;
+            }
+        }
+    </style>
+    <!--<![endif]-->
+    <!--[if mso]>
+        <xml>
+        <o:OfficeDocumentSettings>
+          <o:AllowPNG/>
+          <o:PixelsPerInch>96</o:PixelsPerInch>
+        </o:OfficeDocumentSettings>
+        </xml>
+        <![endif]-->
+    <!--[if lte mso 11]>
+        <style type="text/css">
+          .outlook-group-fix { width:100% !important; }
+        </style>
+        <![endif]-->
 
-  .ExternalClass,
-.ExternalClass p,
-.ExternalClass span,
-.ExternalClass font,
-.ExternalClass td,
-.ExternalClass div {
-    line-height: 100%;
-  }
 
-  .apple-link a {
-    color: inherit !important;
-    font-family: inherit !important;
-    font-size: inherit !important;
-    font-weight: inherit !important;
-    line-height: inherit !important;
-    text-decoration: none !important;
-  }
+    <style type="text/css">
+        @media only screen and (min-width:480px) {
+            .mj-column-per-100 {
+                width: 100% !important;
+            }
+        }
+    </style>
 
-  #MessageViewBody a {
-    color: inherit;
-    text-decoration: none;
-    font-size: inherit;
-    font-family: inherit;
-    font-weight: inherit;
-    line-height: inherit;
-  }
-}
-</style>
-  </head>
-  <body style="font-family: Helvetica, sans-serif; -webkit-font-smoothing: antialiased; font-size: 16px; line-height: 1.3; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; background-color: #f4f5f6; margin: 0; padding: 0;">
-    <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #f4f5f6; width: 100%;" width="100%" bgcolor="#f4f5f6">
-      <tr>
-        <td style="font-family: Helvetica, sans-serif; font-size: 16px; vertical-align: top;" valign="top">&nbsp;</td>
-        <td class="container" style="font-family: Helvetica, sans-serif; font-size: 16px; vertical-align: top; max-width: 600px; padding: 0; padding-top: 24px; width: 600px; margin: 0 auto;" width="600" valign="top">
-          <div class="content" style="box-sizing: border-box; display: block; margin: 0 auto; max-width: 600px; padding: 0;">
-            
-            <!-- Banner Image -->
-            <img src="https://res.cloudinary.com/dxmzvhcjx/image/upload/v1730401894/tawk_email/qmnviweahldhvdqdqnzq.png" alt="Banner" style="max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 4px;">
 
-            <!-- START CENTERED WHITE CONTAINER -->
-            <span class="preheader" style="color: transparent; display: none; height: 0; max-height: 0; max-width: 0; opacity: 0; overflow: hidden; mso-hide: all; visibility: hidden; width: 0;">This is preheader text. Some clients will show this text as a preview.</span>
-            <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="main" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; background: #ffffff; border: 1px solid #eaebed; border-radius: 16px; width: 100%;" width="100%">
+    <style type="text/css">
+    </style>
 
-              <!-- START MAIN CONTENT AREA -->
-              <tr>
-                <td class="wrapper" style="font-family: Helvetica, sans-serif; font-size: 16px; vertical-align: top; box-sizing: border-box; padding: 24px;" valign="top">
-                  <p style="font-family: Helvetica, sans-serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 16px;">Hi {{tawk_user.first_name}} {{tawk_user.last_name}}</p>
-                  <p style="font-family: Helvetica, sans-serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 16px;">You’ve requested an OTP on your Tawk Tools account with {{tawk_user.email}}. Please take a moment to verify that you are the one performing this task. You can also use the OTP below to verify your email.</p>
-                  <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="btn btn-primary" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; width: 100%; min-width: 100%;" width="100%">
-                    <tbody>
-                      <tr>
-                        <td align="left" style="font-family: Helvetica, sans-serif; font-size: 16px; vertical-align: top; padding-bottom: 16px;" valign="top">
-                          <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: auto;">
-                            <tbody>
-                              <tr>
-                                <td style="font-family: Helvetica, sans-serif; font-size: 16px; vertical-align: top; border-radius: 4px; padding: 1.1rem; text-align: center; background-color: #D46642;" valign="top" align="center" bgcolor="#D46642"><strong>{{ otp }}</strong></td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </td>
-                      </tr>
-                    </tbody>
+</head>
+
+<body style="background-color:#f9f9f9;">
+
+
+    <div style="background-color:#f9f9f9;">
+
+
+        <!--[if mso | IE]>
+      <table
+         align="center" border="0" cellpadding="0" cellspacing="0" style="width:600px;" width="600"
+      >
+        <tr>
+          <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
+      <![endif]-->
+
+
+        <div style="background:#f9f9f9;background-color:#f9f9f9;Margin:0px auto;max-width:600px;">
+
+            <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#f9f9f9;background-color:#f9f9f9;width:100%;">
+                <tbody>
+                    <tr>
+                        <td style="border-bottom:#333957 solid 5px;direction:ltr;font-size:0px;padding:20px 0;text-align:center;vertical-align:top;">
+                            <!--[if mso | IE]>
+                  <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                
+        <tr>
+      
+        </tr>
+      
                   </table>
-                  <p style="font-family: Helvetica, sans-serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 16px;"> Don't ever give this code to someone who claims to be an Tawk Global or mobile agent. Never will an Tawk Global representative request this code. This email can be safely ignored if you did not ask for a login code.</p>
-                    <p style="font-family: Helvetica, sans-serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 16px;">Thank you for choosing our service. If you have any questions, please contact our support team.</p>
-                  <p style="font-family: Helvetica, sans-serif; font-size: 16px; font-weight: normal; margin: 0; margin-bottom: 16px;">Good luck! Hope it works.</p>
-                </td>
-              </tr>
+                <![endif]-->
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
 
-              <!-- END MAIN CONTENT AREA -->
-              </table>
+        </div>
 
-            <!-- START FOOTER -->
-            <div class="footer" style="clear: both; padding-top: 24px; text-align: center; width: 100%;">
-              <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%;" width="100%">
-                <tr>
-                  <td class="content-block" style="font-family: Helvetica, sans-serif; vertical-align: top; color: #9a9ea6; font-size: 16px; text-align: center;" valign="top" align="center">
-                    <span class="apple-link" style="color: #9a9ea6; font-size: 16px; text-align: center;">Company Inc, 7-11 Commercial Ct, Belfast BT1 2NB</span>
-                    <br> Don't like these emails? <a href="http://tawkglobal.com/contact" style="text-decoration: underline; color: #9a9ea6; font-size: 16px; text-align: center;">Tawk Global LLC</a>.
-                  </td>
-                </tr>
-                <tr>
-                  <td class="content-block powered-by" style="font-family: Helvetica, sans-serif; vertical-align: top; color: #9a9ea6; font-size: 16px; text-align: center;" valign="top" align="center">
-                    Powered by <a href="http://tawkglobal.com" style="color: #9a9ea6; font-size: 16px; text-align: center; text-decoration: none;">Tawk Global LLC.</a>
-                  </td>
-                </tr>
-              </table>
-            </div>
 
-            <!-- END FOOTER -->
-            
-<!-- END CENTERED WHITE CONTAINER --></div>
-        </td>
-        <td style="font-family: Helvetica, sans-serif; font-size: 16px; vertical-align: top;" valign="top">&nbsp;</td>
-      </tr>
-    </table>
-  </body>
+        <!--[if mso | IE]>
+          </td>
+        </tr>
+      </table>
+      
+      <table
+         align="center" border="0" cellpadding="0" cellspacing="0" style="width:600px;" width="600"
+      >
+        <tr>
+          <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
+      <![endif]-->
+
+
+        <div style="background:#fff;background-color:#fff;Margin:0px auto;max-width:600px;">
+
+            <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#fff;background-color:#fff;width:100%;">
+                <tbody>
+                    <tr>
+                        <td style="border:#dddddd solid 1px;border-top:0px;direction:ltr;font-size:0px;padding:20px 0;text-align:center;vertical-align:top;">
+                            <!--[if mso | IE]>
+                  <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                
+        <tr>
+      
+            <td
+               style="vertical-align:bottom;width:600px;"
+            >
+          <![endif]-->
+
+                            <div class="mj-column-per-100 outlook-group-fix" style="font-size:13px;text-align:left;direction:ltr;display:inline-block;vertical-align:bottom;width:100%;">
+
+                                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:bottom;" width="100%">
+
+                                    <tr>
+                                        <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+
+                                            <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:collapse;border-spacing:0px;">
+                                                <tbody>
+                                                    <tr>
+                                                        <td style="width:64px;">
+
+                                                            <img height="auto" src="https://res.cloudinary.com/dxmzvhcjx/image/upload/v1730405588/tawk_email/hzncfei4mxon58uggr7s.png" style="border:0;display:block;outline:none;text-decoration:none;width:100%;" width="64" />
+
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td align="center" style="font-size:0px;padding:10px 25px;padding-bottom:40px;word-break:break-word;">
+
+                                            <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:32px;font-weight:bold;line-height:1;text-align:center;color:#555;">
+                                                Please confirm your email
+                                            </div>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td align="center" style="font-size:0px;padding:10px 25px;padding-bottom:0;word-break:break-word;">
+
+                                            <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;line-height:22px;text-align:center;color:#555;">
+                                                Yes, we know.
+                                            </div>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+
+                                            <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;line-height:22px;text-align:center;color:#555;">
+                                                An email to confirm an email.
+                                            </div>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td align="center" style="font-size:0px;padding:10px 25px;padding-bottom:20px;word-break:break-word;">
+
+                                            <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;line-height:22px;text-align:center;color:#555;">
+                                                Please validate your email address in order to get started using Tawk Toolkits.
+                                            </div>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                      <td align="center" style="font-size:0px;padding:10px 25px;padding-top:30px;padding-bottom:50px;word-break:break-word;">
+
+                                          <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;line-height:100%;">
+                                              <tr>
+                                                  <td align="center" bgcolor="#D46642" role="presentation" style="border:none;border-radius:3px;color:#ffffff;cursor:auto;padding:15px 25px;" valign="middle">
+                                                      <p style="background:#D46642;color:#ffffff;font-family:'Helvetica Neue',Arial,sans-serif;font-size:15px;font-weight:normal;line-height:120%;Margin:0;text-decoration:none;text-transform:none;">
+                                                          {{ otp }}
+                                                      </p>
+                                                  </td>
+                                              </tr>
+                                          </table>
+
+                                      </td>
+                                  </tr>
+
+                                    <tr>
+                                        <td align="center" style="font-size:0px;padding:10px 25px;padding-bottom:0;word-break:break-word;">
+
+                                            <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;line-height:22px;text-align:center;color:#555;">
+                                                What make's Tawk standout? vist link:
+                                            </div>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td align="center" style="font-size:0px;padding:10px 25px;padding-bottom:40px;word-break:break-word;">
+
+                                            <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;line-height:22px;text-align:center;color:#555;">
+                                                <a href="https://www.tawkglobal.com/offings/comparison" style="color:#D46642">https://www.tawkglobal.com/offings/comparison</a>
+                                            </div>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+
+                                            <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:26px;font-weight:bold;line-height:1;text-align:center;color:#555;">
+                                                Need Help?
+                                            </div>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td align="center" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+
+                                            <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;line-height:22px;text-align:center;color:#555;">
+                                                Please send and feedback or bug info<br> to <a href="mailto:hello@tawkglobal.com" style="color:#D46642">hello@tawkglobal.com</a>
+                                            </div>
+
+                                        </td>
+                                    </tr>
+
+                                </table>
+
+                            </div>
+
+                            <!--[if mso | IE]>
+            </td>
+          
+        </tr>
+      
+                  </table>
+                <![endif]-->
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+
+        <!--[if mso | IE]>
+          </td>
+        </tr>
+      </table>
+      
+      <table
+         align="center" border="0" cellpadding="0" cellspacing="0" style="width:600px;" width="600"
+      >
+        <tr>
+          <td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;">
+      <![endif]-->
+
+
+        <div style="Margin:0px auto;max-width:600px;">
+
+            <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
+                <tbody>
+                    <tr>
+                        <td style="direction:ltr;font-size:0px;padding:20px 0;text-align:center;vertical-align:top;">
+                            <!--[if mso | IE]>
+                  <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                
+        <tr>
+      
+            <td
+               style="vertical-align:bottom;width:600px;"
+            >
+          <![endif]-->
+
+                            <div class="mj-column-per-100 outlook-group-fix" style="font-size:13px;text-align:left;direction:ltr;display:inline-block;vertical-align:bottom;width:100%;">
+
+                                <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+                                    <tbody>
+                                        <tr>
+                                            <td style="vertical-align:bottom;padding:0;">
+
+                                                <table border="0" cellpadding="0" cellspacing="0" role="presentation" width="100%">
+
+                                                    <tr>
+                                                        <td align="center" style="font-size:0px;padding:0;word-break:break-word;">
+
+                                                            <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:300;line-height:1;text-align:center;color:#575757;">
+                                                                Some Firm Ltd, 35 Avenue. City 10115, USA
+                                                            </div>
+
+                                                        </td>
+                                                    </tr>
+
+                                                    <tr>
+                                                        <td align="center" style="font-size:0px;padding:10px;word-break:break-word;">
+
+                                                            <div style="font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;font-weight:300;line-height:1;text-align:center;color:#575757;">
+                                                                <a href="" style="color:#575757">Unsubscribe</a> from our emails
+                                                            </div>
+
+                                                        </td>
+                                                    </tr>
+
+                                                </table>
+
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                            </div>
+
+                            <!--[if mso | IE]>
+            </td>
+          
+        </tr>
+      
+                  </table>
+                <![endif]-->
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+
+        <!--[if mso | IE]>
+          </td>
+        </tr>
+      </table>
+      <![endif]-->
+
+
+    </div>
+
+</body>
+
 </html>

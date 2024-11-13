@@ -1,5 +1,7 @@
+import random
 from subscription.models import Subscription, SubscriptionPlan
 from wallet.models import WalletModel
+from django.core.cache import cache
 from .models import *
 from django.dispatch import receiver
 from django.contrib.auth.models import User
@@ -79,3 +81,23 @@ def create_subscription_expiration(sender, instance, created, **kwargs):
         instance.expiration_date = expiration_date.isoformat()
         instance.is_active = True
         instance.save()
+
+
+@receiver(post_save, sender=User)
+def send_email_verification_otp(sender, instance, created, **kwargs):
+    if created:  
+        email = instance.email
+        otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+
+        cache.set(email, otp, timeout=300)
+
+        merge_data = {
+            'tawk_user': instance,
+            'otp': otp,
+        }
+
+        html_body = render_to_string("emails/confirm_email.html", merge_data)
+        msg = EmailMultiAlternatives(subject="Tawk Toolkit Email Verification", from_email=settings.EMAIL_HOST_USER, to=[
+                                    email], body=" ",)
+        msg.attach_alternative(html_body, "text/html")
+        return msg.send(fail_silently=False)

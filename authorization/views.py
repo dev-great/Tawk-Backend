@@ -430,6 +430,7 @@ class GoogleAPIView(APIView):
                 detail=str(e), status_code=status.HTTP_404_NOT_FOUND).get_full_details()
 
 
+
 class EmailOTPAuthentication(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
@@ -441,44 +442,45 @@ class EmailOTPAuthentication(APIView):
             'tawk_user': request.user,
             'otp': otp,
         }
-        try:
-            html_body = render_to_string(
-            "otp_mail.html", merge_data)
-        
-        except TemplateDoesNotExist as template_error:
-            logger.error(f"Template not found: {template_error}")
-            html_body = f"""Dear {email},\n\nYour OTP is: {
-                otp}\n\nPlease use this OTP to reset your password."""
+  
+        cache.set(email, otp, timeout=300)
 
-        msg = EmailMultiAlternatives(
-            subject="Yinoral Email Verification.",
-            from_email=settings.EMAIL_HOST_USER,
-            to=[email],
-            body=" ",
-        )
+        merge_data = {
+            'otp': otp,
+        }
+
+        html_body = render_to_string("emails/confirm_email.html", merge_data)
+        msg = EmailMultiAlternatives(subject="Tawk Toolkit Email Authentication", from_email=settings.EMAIL_HOST_USER, to=[
+                                    email], body=" ",)
         msg.attach_alternative(html_body, "text/html")
+        return msg.send(fail_silently=False)
         
-        try:
-            msg.send(fail_silently=False)
-            logger.info(f"OTP sent to {email}")
-        except Exception as e:
-            logger.error(f"Failed to send email: {e}")
-            return custom_response(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, message="Failed to send OTP.", data=None)
 
-        return custom_response(status_code=status.HTTP_200_OK, message="OTP sent to your email.", data=None)
+
+class EmailVerificationView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def put(self, request):
         email = request.user.email
         otp_entered = request.data.get('otp')
 
-        otp_stored = cache.get(email)
-        if email not in otp_stored:
-            return CustomAPIException(detail="OTP not sent for this email.", status_code=status.HTTP_400_BAD_REQUEST).get_full_details()
+        otp_stored = cache.get(email)        
+        print(f"OTP entered: {otp_entered}")
+        print(f"OTP stored in cache: {otp_stored}")
+        print(f"Type of OTP entered: {type(otp_entered)}")
+        print(f"Type of OTP stored in cache: {type(otp_stored)}")
 
-        if otp_entered == otp_stored:
+
+        if not otp_stored:
+            return custom_response(status_code=status.HTTP_400_BAD_REQUEST, message="OTP not sent for this email.", data=None)
+
+        if str(otp_entered).strip() == str(otp_stored).strip():
             cache.delete(email)
+
+            user = CustomUser.objects.get(email=email)
+            user.is_verified = True
+            user.save()
+            
             return custom_response(status_code=status.HTTP_200_OK, message="Email verification successful.", data=None)
         else:
-            return CustomAPIException(detail="Incorrect OTP.", status_code=status.HTTP_400_BAD_REQUEST).get_full_details()
-
-
+            return custom_response(status_code=status.HTTP_400_BAD_REQUEST, message="Incorrect OTP.", data=None)

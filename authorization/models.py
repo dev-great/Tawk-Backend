@@ -12,6 +12,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
     email = models.EmailField(_('email address'), unique=True)
+    is_verify = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_superuser = models.BooleanField(default=False)
@@ -43,7 +44,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
     EMAIL_FIELD = 'email'
     PASSWORD_FIELD = 'password'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'account_type', ]
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'account_type','is_verify', ]
 
     def __str__(self):
         return str(self.email)

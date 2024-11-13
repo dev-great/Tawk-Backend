@@ -2,7 +2,7 @@ from django.urls import path, re_path, include
 from authorization.views import (
     ChangePasswordView, DeleteAccount, GoogleAPIView, LoginView, Logout,
     ReferralHistoryView, ReferralView, RegisterView, TokenRefreshView,
-    TokenVerifyView, UserProfileView
+    TokenVerifyView, UserProfileView,EmailVerificationView, EmailOTPAuthentication
 )
 
 urlpatterns = [
@@ -10,6 +10,8 @@ urlpatterns = [
     path('register/', RegisterView.as_view()),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+    path('email/verify/', EmailVerificationView.as_view(), name='email_verify'),
+    path('email/otp/resend/', EmailOTPAuthentication.as_view(), name='email_otp'),
     path('user_profile/', UserProfileView.as_view()),
     path('logout/', Logout.as_view()),
     path('changepassword/', ChangePasswordView.as_view()),
