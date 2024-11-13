@@ -480,10 +480,10 @@ class EmailVerificationView(APIView):
 
             with transaction.atomic():  # Ensures that the changes are committed
                 user = CustomUser.objects.get(email=email)
-                print(f"User before verification: {user.email}, Verified: {user.is_verified}")
-                user.is_verified = True
+                print(f"User before verification: {user.email}, Verified: {user.is_verify}")
+                user.is_verify = True
                 user.save()
-                print(f"User after verification: {user.email}, Verified: {user.is_verified}")
+                print(f"User after verification: {user.email}, Verified: {user.is_verify}")
                             
             return custom_response(status_code=status.HTTP_200_OK, message="Email verification successful.", data=None)
         else:
