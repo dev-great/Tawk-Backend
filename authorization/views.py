@@ -21,6 +21,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.template import TemplateDoesNotExist
 from drf_yasg import openapi
+from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
 from dotenv import load_dotenv
 from django.core.cache import cache  
@@ -477,10 +478,13 @@ class EmailVerificationView(APIView):
         if str(otp_entered).strip() == str(otp_stored).strip():
             cache.delete(email)
 
-            user = CustomUser.objects.get(email=email)
-            user.is_verified = True
-            user.save()
-            
+            with transaction.atomic():  # Ensures that the changes are committed
+                user = CustomUser.objects.get(email=email)
+                print(f"User before verification: {user.email}, Verified: {user.is_verified}")
+                user.is_verified = True
+                user.save()
+                print(f"User after verification: {user.email}, Verified: {user.is_verified}")
+                            
             return custom_response(status_code=status.HTTP_200_OK, message="Email verification successful.", data=None)
         else:
             return custom_response(status_code=status.HTTP_400_BAD_REQUEST, message="Incorrect OTP.", data=None)
