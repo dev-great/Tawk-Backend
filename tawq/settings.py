@@ -306,8 +306,6 @@ LOGGING = {
     },
 }
 
-AUTH_USER_MODEL = 'authorization.CustomUser'
-SOCIAL_AUTH_URL_NAMESPACE = "authorization:social"
 
 
 STATIC_URL = '/static/'
