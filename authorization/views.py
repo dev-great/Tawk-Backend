@@ -454,7 +454,12 @@ class EmailOTPAuthentication(APIView):
         msg = EmailMultiAlternatives(subject="Tawk Toolkit Email Authentication", from_email=settings.EMAIL_HOST_USER, to=[
                                     email], body=" ",)
         msg.attach_alternative(html_body, "text/html")
-        return msg.send(fail_silently=False)
+        try:
+            msg.send(fail_silently=False)
+            return custom_response(status_code=status.HTTP_200_OK, message="OTP sent successfully", data=None) 
+        except Exception as e:
+            return CustomAPIException(
+                detail=str(e), status_code=status.HTTP_404_NOT_FOUND).get_full_details()
         
 
 
