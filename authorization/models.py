@@ -21,8 +21,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(
         max_length=50, null=True, blank=True)
     account_type = models.CharField(
-        max_length=200, null=True, blank=True)
-   
+        max_length=50, null=True, blank=True
+    )
+    provider = models.CharField(
+        max_length=50, null=True, blank=True )
     groups = models.ManyToManyField(
         Group,
         verbose_name=_('groups'),

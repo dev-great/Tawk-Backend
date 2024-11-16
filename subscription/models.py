@@ -34,11 +34,16 @@ class Subscription(models.Model):
     status = models.CharField(max_length=250, blank=True, null=True)
     customer_id = models.CharField(max_length=250, blank=True, null=True)
     auto_renew = models.BooleanField(default=False)
+    is_trial = models.BooleanField(default=False)  
     is_active = models.BooleanField(default=True)
     created_on = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user} - {self.plan.name}"
+
+    @staticmethod
+    def trial_duration():
+        return timedelta(days=14)
 
     def calculate_expiration_date(self):
         return self.start_date + timedelta(days=self.plan.duration * self.payment_months)

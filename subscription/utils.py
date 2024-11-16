@@ -10,10 +10,6 @@ def generate_tx_ref():
     unique_part = ''.join(secrets.choice(char_set) for _ in range(36))
     tx_ref = f"TAWKTOOLS_{unique_part}-{timezone.now()}"
     return tx_ref
-print(generate_tx_ref())
-
-
-
 
 
 def encrypt_data(key, data):

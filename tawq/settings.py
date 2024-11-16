@@ -25,16 +25,16 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-SECURE_HSTS_SECONDS = 31536000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SESSION_COOKIE_HTTPONLY = True
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
+# SECURE_SSL_REDIRECT = True
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
+# SECURE_HSTS_SECONDS = 31536000
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# SESSION_COOKIE_HTTPONLY = True
+# SECURE_BROWSER_XSS_FILTER = True
+# SECURE_CONTENT_TYPE_NOSNIFF = True
+# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOW_CREDENTIALS = True
 
@@ -140,6 +140,20 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
+
+SOCIAL_AUTH_PIPELINE = (
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.auth_allowed',
+    'social_core.pipeline.social_auth.social_user',
+    'social_core.pipeline.user.create_user',  
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details',
+    'authorization.views.ensure_email_and_provider', 
+)
+
+
 SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
     'DEFAULT_FIELD_INSPECTORS': [
@@ -173,6 +187,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    # 'django_tenants.middleware.main.TenantMainMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
 ]
 
@@ -210,6 +225,9 @@ DATABASES = {
     }
 }
 
+# DATABASE_ROUTERS = (
+#     'django_tenants.routers.TenantSyncRouter',
+# )
 
 CACHES = {
     'default': {
@@ -286,25 +304,21 @@ DJANGO_REST_PASSWORDRESET_TOKEN_CONFIG = {
 }
 
 LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
         },
     },
-    "root": {
-        "handlers": ["console"],
-        "level": "WARNING",
-    },
-    "loggers": {
-        "django": {
-            "handlers": ["console"],
-            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
-            "propagate": False,
+    'loggers': {
+        'social_core': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
         },
     },
 }
+
 
 
 
@@ -441,6 +455,6 @@ SIMPLE_JWT = {
 
 
 
-if 'DATABASE_URL' in os.environ:
-    import dj_database_url
-    DATABASES = {'default': dj_database_url.config()}
+# if 'DATABASE_URL' in os.environ:
+#     import dj_database_url
+#     DATABASES = {'default': dj_database_url.config()}

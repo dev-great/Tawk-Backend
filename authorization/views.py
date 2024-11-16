@@ -488,3 +488,17 @@ class EmailVerificationView(APIView):
             return custom_response(status_code=status.HTTP_200_OK, message="Email verification successful.", data=None)
         else:
             return custom_response(status_code=status.HTTP_400_BAD_REQUEST, message="Incorrect OTP.", data=None)
+
+
+def ensure_email_and_provider(backend, details, response, user=None, *args, **kwargs):
+    print(f"Pipeline execution: backend={backend.name}, details={details}, user={user}")
+    
+    email = details.get('email')
+    if not email:
+        raise ValueError('Authentication failed: Missing email address')
+
+    if user:
+        user.provider = backend.name
+        user.save()
+
+    return {'email': email, 'provider': backend.name}

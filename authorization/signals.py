@@ -15,8 +15,8 @@ from django.utils import timezone
 
 User = get_user_model()
 
-
-@receiver(post_save, sender=User)
+ 
+@receiver(post_save, sender=CustomUser)
 def send_order_email_confirmation(sender, instance, created, **kwargs):
     if created:
         tawk_user = instance
@@ -30,9 +30,9 @@ def send_order_email_confirmation(sender, instance, created, **kwargs):
                                      instance.email], body=" ",)
         msg.attach_alternative(html_body, "text/html")
         return msg.send(fail_silently=False)
+    
 
-
-@receiver(post_save, sender=User)
+@receiver(post_save, sender=CustomUser)
 def create_referral_code(sender, instance, created, **kwargs):
     if created:
         ReferralCode.objects.create(user=instance, code=123)
@@ -83,9 +83,9 @@ def create_subscription_expiration(sender, instance, created, **kwargs):
         instance.save()
 
 
-@receiver(post_save, sender=User)
+@receiver(post_save, sender=CustomUser)
 def send_email_verification_otp(sender, instance, created, **kwargs):
-    if created:  
+    if created and instance.provider == "web":  
         email = instance.email
         otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
 
