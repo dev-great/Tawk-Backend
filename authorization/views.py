@@ -186,10 +186,39 @@ class TokenRefreshView(TokenRefreshView):
 
         if response.status_code == status.HTTP_200_OK:
             logger.info("Token refresh successful.")
-            return custom_response(status_code=status.HTTP_200_OK, message="Token refreshed successfully.", data=response.data)
+
+            new_refresh_token = response.data.get("refresh")
+            access_token = response.data.get("access")
+
+            if not new_refresh_token:
+                logger.error("No new refresh token provided in response.")
+                return CustomAPIException(detail="Failed to generate a new refresh token.", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            try:
+                response.set_cookie(
+                    'refresh_token',
+                    new_refresh_token,
+                    max_age=7 * 24 * 60 * 60,  
+                    expires=timedelta(days=7),
+                    secure=True,  
+                    httponly=True,  
+                    samesite='Lax',  
+                )
+            except Exception as e:
+                logger.error(f"Error setting cookie: {str(e)}")
+                raise CustomAPIException(detail=f"Error setting cookie: {str(e)}", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            # Custom response data
+            response_data = {
+                "auth": {
+                    "access": access_token,
+                },
+                "message": "Token refreshed successfully."
+            }
+            return custom_response(status_code=status.HTTP_200_OK, message="Token refreshed successfully.", data=response_data)
         else:
             logger.error(f"Token refresh failed with status code {response.status_code}.")
-            raise CustomAPIException(detail="Token refresh failed.", status_code=response.status_code, data=response.data)
+            return CustomAPIException(detail="Token refresh failed.", status_code=response.status_code, data=response.data)
 
 
 class TokenVerifyView(TokenVerifyView):
