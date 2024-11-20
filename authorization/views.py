@@ -73,9 +73,9 @@ class RegisterView(APIView):
                 str(refresh),
                 max_age=timedelta(days=7),
                 expires=timedelta(days=7),
-                secure=True, 
+                secure=False, 
                 httponly=True,
-                samesite=None,
+                samesite='Lax',
             )
 
             logger.info(f"User registered: {serializer.data['email']}")
@@ -143,9 +143,9 @@ class LoginView(TokenObtainPairView):
                 str(refresh), 
                 max_age=timedelta(days=7),
                 expires=timedelta(days=7),
-                secure=True,  
+                secure=False,  
                 httponly=True,  
-                samesite=None,
+                samesite='Lax',
             )
         except Exception as e:
             return CustomAPIException(
@@ -198,11 +198,11 @@ class TokenRefreshView(TokenRefreshView):
                 response.set_cookie(
                     'refresh_token',
                     new_refresh_token,
-                    max_age=7 * 24 * 60 * 60,  
+                    max_age=timedelta(days=7),  
                     expires=timedelta(days=7),
-                    secure=True,  
-                    httponly=True,  
-                    samesite=None, 
+                    secure=False,  
+                    httponly=True,      
+                    samesite='Lax', 
                 )
 
             except Exception as e:
