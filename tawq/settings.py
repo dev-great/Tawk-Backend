@@ -12,7 +12,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-295#lq+1oh6yv$@&dn^c8d)8tpwma-8xvhvlnup3)u_5@1r!r='
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', 'tawk-backend-46a670866b8a.herokuapp.com']
 

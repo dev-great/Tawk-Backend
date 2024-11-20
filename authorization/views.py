@@ -73,12 +73,10 @@ class RegisterView(APIView):
                 str(refresh),
                 max_age=timedelta(days=7),
                 expires=timedelta(days=7),
-                secure=False, 
+                secure=True, 
                 httponly=True,
                 samesite=None,
             )
-            response["Access-Control-Allow-Origin"] = "http://localhost:5173"
-            response["Access-Control-Allow-Credentials"] = "true"
 
             logger.info(f"User registered: {serializer.data['email']}")
             return response
@@ -145,12 +143,10 @@ class LoginView(TokenObtainPairView):
                 str(refresh), 
                 max_age=timedelta(days=7),
                 expires=timedelta(days=7),
-                secure=False,  
+                secure=True,  
                 httponly=True,  
                 samesite=None,
             )
-            response["Access-Control-Allow-Origin"] = "http://localhost:5173"
-            response["Access-Control-Allow-Credentials"] = "true"
         except Exception as e:
             return CustomAPIException(
                 detail=f"Error setting cookie: {str(e)}", 
@@ -204,12 +200,10 @@ class TokenRefreshView(TokenRefreshView):
                     new_refresh_token,
                     max_age=7 * 24 * 60 * 60,  
                     expires=timedelta(days=7),
-                    secure=False,  
+                    secure=True,  
                     httponly=True,  
                     samesite=None, 
                 )
-                response["Access-Control-Allow-Origin"] = "http://localhost:5173"
-                response["Access-Control-Allow-Credentials"] = "true"
 
             except Exception as e:
                 logger.error(f"Error setting cookie: {str(e)}")
