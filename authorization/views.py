@@ -73,7 +73,7 @@ class RegisterView(APIView):
                 str(refresh),
                 max_age=timedelta(days=7),
                 expires=timedelta(days=7),
-                secure=False, 
+                secure=True, 
                 httponly=True,
                 samesite='None',
             )
@@ -143,7 +143,7 @@ class LoginView(TokenObtainPairView):
                 str(refresh), 
                 max_age=timedelta(days=7),
                 expires=timedelta(days=7),
-                secure=False,  
+                secure=True,  
                 httponly=True,  
                 samesite='None',
             )
@@ -200,7 +200,7 @@ class TokenRefreshView(TokenRefreshView):
                     new_refresh_token,
                     max_age=timedelta(days=7),  
                     expires=timedelta(days=7),
-                    secure=False,  
+                    secure=True,  
                     httponly=True,      
                     samesite='None', 
                 )
