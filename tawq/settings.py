@@ -14,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-295#lq+1oh6yv$@&dn^c8d)8tpwma-8xvhvlnup3)u_5@1r!r='
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', 'tawk-backend-46a670866b8a.herokuapp.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1' , 'tawk-backend-46a670866b8a.herokuapp.com']
 
 
 SESSION_COOKIE_SECURE = not DEBUG
@@ -447,6 +447,6 @@ SIMPLE_JWT = {
 
 
 
-if 'DATABASE_URL' in os.environ:
-    import dj_database_url
-    DATABASES = {'default': dj_database_url.config()}
+# if 'DATABASE_URL' in os.environ:
+#     import dj_database_url
+#     DATABASES = {'default': dj_database_url.config()}

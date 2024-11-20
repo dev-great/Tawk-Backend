@@ -181,10 +181,16 @@ class TokenRefreshView(TokenRefreshView):
             logger.error("Refresh token is missing in the cookies.")
             raise CustomAPIException(detail="Refresh token not provided.", status_code=status.HTTP_400_BAD_REQUEST)
 
+
         # Create a mutable copy of request.data
-        data = request.data.copy()
-        data["refresh"] = refresh_token
-        request._data = data 
+        mutable_data = request.data.copy()
+        
+        # Add the refresh token to the request data
+        mutable_data["refresh"] = refresh_token
+
+        # Now pass the modified data to the parent class
+        request._full_data = mutable_data  # Modify the actual request data
+
         response = super().post(request, *args, **kwargs)
 
         if response.status_code == status.HTTP_200_OK:
