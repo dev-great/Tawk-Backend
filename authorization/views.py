@@ -75,7 +75,7 @@ class RegisterView(APIView):
                 expires=timedelta(days=7),
                 secure=False, 
                 httponly=True,
-                samesite='Lax',
+                samesite='None',
             )
 
             logger.info(f"User registered: {serializer.data['email']}")
@@ -145,7 +145,7 @@ class LoginView(TokenObtainPairView):
                 expires=timedelta(days=7),
                 secure=False,  
                 httponly=True,  
-                samesite='Lax',
+                samesite='None',
             )
         except Exception as e:
             return CustomAPIException(
@@ -202,7 +202,7 @@ class TokenRefreshView(TokenRefreshView):
                     expires=timedelta(days=7),
                     secure=False,  
                     httponly=True,      
-                    samesite='Lax', 
+                    samesite='None', 
                 )
 
             except Exception as e:
