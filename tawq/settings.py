@@ -369,8 +369,8 @@ abq1WSAk
 
 
 # Facebook configuration
-SOCIAL_AUTH_FACEBOOK_KEY = '525916073144369'
-SOCIAL_AUTH_FACEBOOK_SECRET = '0570be6120817f26a1db6458261bfcc4'
+SOCIAL_AUTH_FACEBOOK_KEY = '1008378514203362'
+SOCIAL_AUTH_FACEBOOK_SECRET = '6a3e7a7c5d8e340c1cb41dae08e1d38a'
 SOCIAL_AUTH_FACEBOOK_SCOPE = [
     'email',                        # Basic permission
     'pages_show_list',               # Access pages the user manages
