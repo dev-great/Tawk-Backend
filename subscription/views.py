@@ -60,10 +60,6 @@ class InitiateSubscriptionView(APIView):
             "payment_plan": payment_plan,
             "email": email,
             "tx_ref": tx_ref,
-            "authorization": {
-                "mode": "pin",
-                "pin": pin
-            }
         }
         
         
