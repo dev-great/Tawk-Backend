@@ -222,6 +222,7 @@ class CreateFreePlanView(APIView):
             
             if created:
                 subscription.start_date = timezone.now()
+                subscription.is_active = False
                 subscription.expiration_date = subscription.calculate_expiration_date()
             else:
                 subscription.renew_subscription()
