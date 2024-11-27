@@ -58,7 +58,8 @@ class Subscription(models.Model):
 
     def renew_subscription(self):
         self.expiration_date = self.expiration_date + timedelta(days=self.plan.duration)
-        self.is_active = True
+        if self.plan.plan_id != "00000":
+            self.is_active = True
         self.save()
 
         # CREATE A NEW BILLING DETAIL RECORD FOR THIS RENEWAL
@@ -89,17 +90,20 @@ class Subscription(models.Model):
 class Billing(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=8, decimal_places=2)
-    currency = models.CharField(max_length=3, default='USD')
-    payment_date = models.DateTimeField(auto_now_add=True)
-    tx_ref = models.CharField(max_length=100, blank=True, null=True)
-    expiration_date = models.DateTimeField()
-    gateway = models.CharField(max_length=20, choices=PROVIDER_CHOICES, default='Flutterwave')
-    status = models.CharField(max_length=250, blank=True, null=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=10)
+    payment_date = models.DateTimeField()
+    gateway = models.CharField(max_length=50)
     plan_name = models.CharField(max_length=100)
-    customer_id = models.CharField(max_length=250, blank=True, null=True)
     plan_duration = models.IntegerField()
-    plan_price = models.DecimalField(max_digits=8, decimal_places=2)
+    plan_price = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=50)
+    customer_id = models.CharField(max_length=250, blank=True, null=True)
+    tx_ref = models.CharField(max_length=250)
+    expiration_date = models.DateTimeField()
+    start_date = models.DateTimeField() 
+
+
 
     def __str__(self):
         return f"{self.user_id} - {self.amount} {self.currency} on {self.payment_date}"
@@ -107,7 +111,7 @@ class Billing(models.Model):
 
 class Card(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
-    subscription = models.ForeignKey('Subscription', on_delete=models.CASCADE, related_name='cards')
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     first_6digits = models.CharField(max_length=6)
     last_4digits = models.CharField(max_length=4)
     issuer = models.CharField(max_length=50)

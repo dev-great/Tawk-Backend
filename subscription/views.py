@@ -15,6 +15,10 @@ from exceptions.custom_apiexception_class import *
 from utils.custom_response import custom_response
 User = get_user_model()
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 #
 class SubscriptionPlanListView(APIView):
@@ -24,7 +28,7 @@ class SubscriptionPlanListView(APIView):
             serializer = SubscriptionPlanSerializer(subscription_plans, many=True)
             return custom_response(status_code=status.HTTP_200_OK, message="Subscription check completed.", data=serializer.data)  
         except Exception as e:
-            return CustomAPIException(detail=str(e), status_code=status.HTTP_400_BAD_REQUEST) 
+            return CustomAPIException(detail=str(e), status_code=status.HTTP_400_BAD_REQUEST).get_full_details()
 
 
 
@@ -35,7 +39,6 @@ class InitiateSubscriptionView(APIView):
     def post(self, request):
         # EXTRACT PAYMENT DETAILS FROM THE REQUEST
         cvv = request.data.get("cvv")
-        pin = request.data.get("pin")
         tx_ref = request.data.get("tx_ref")
         amount = request.data.get("amount")
         payment_plan = request.data.get("payment_plan")
@@ -60,8 +63,8 @@ class InitiateSubscriptionView(APIView):
             "payment_plan": payment_plan,
             "email": email,
             "tx_ref": tx_ref,
+
         }
-        
         
         encryption_key = "FLWSECK_TEST44a081d6c747" 
         encrypted_payload = encrypt_data(encryption_key, payment_data)
@@ -99,7 +102,7 @@ class InitiateSubscriptionView(APIView):
 
                     # Handle any other authorization modes if needed
                     else:
-                        return CustomAPIException(detail= "Unsupported authorization mode", status_code=status.HTTP_400_BAD_REQUEST)
+                        return CustomAPIException(detail= "Unsupported authorization mode", status_code=status.HTTP_400_BAD_REQUEST).get_full_details()
 
 
                 # Successful payment initiation
@@ -108,94 +111,129 @@ class InitiateSubscriptionView(APIView):
 
                 # Other error handling
                 else:
-                    return CustomAPIException(detail=str(response_data["message"]), status_code=status.HTTP_400_BAD_REQUEST)
+                    return CustomAPIException(detail=str(response_data["message"]), status_code=status.HTTP_400_BAD_REQUEST).get_full_details()
 
         except Exception as e:
-            return CustomAPIException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR) 
+            return CustomAPIException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR).get_full_details() 
     
 
 class ValidateSubscriptionView(APIView):
     permission_classes = [IsAuthenticated]
-    
+
     def post(self, request):
         flw_ref = request.data.get("flw_ref")
         otp = request.data.get("otp")
 
+        # Prepare payload and headers
         authorization_payload = {
             "flw_ref": flw_ref,
             "otp": otp,
             "type": "card"
         }
-
         headers = {
             "Authorization": "Bearer FLWSECK_TEST-d715f2b61ac64d86cc7e0582391895f7-X",
             "Content-Type": "application/json",
         }
 
         try:
-            response_data = self._validate_payment(authorization_payload, headers)
+            # Validate the payment
+            response = requests.post(
+                'https://api.flutterwave.com/v3/validate-charge',
+                json=authorization_payload,
+                headers=headers
+            )
+            response_data = response.json()
+
             if response_data["status"] == "success":
-                subscription, card_data = self._process_subscription(request.user, response_data["data"])
-                self._save_card_info(subscription, card_data)
+                data = response_data["data"]
                 
+                # Save card information
+                card_data = data.get("card")
+                if card_data:
+                    logger.debug(f"Saving card info: {card_data}")
+                    Card.objects.create(
+                        user=request.user,
+                        first_6digits=card_data["first_6digits"],
+                        last_4digits=card_data["last_4digits"],
+                        issuer=card_data["issuer"],
+                        country=card_data["country"],
+                        card_type=card_data["type"],
+                        expiry_date=card_data["expiry"],
+                    )
+                    logger.debug("Card info saved successfully.")
+
                 return custom_response(
                     status_code=status.HTTP_200_OK,
                     message="Payment completed and subscription created successfully.",
-                    data=response_data["data"]
+                    data=data
                 )
             else:
-                raise CustomAPIException(
+                logger.error(f"Payment validation failed: {response_data['message']}")
+                return CustomAPIException(
                     detail=str(response_data["message"]),
                     status_code=status.HTTP_400_BAD_REQUEST
-                )
+                ).get_full_details()
 
+        except SubscriptionPlan.DoesNotExist:
+            logger.error("Subscription plan does not exist.")
+            return CustomAPIException(
+                detail="Invalid subscription plan.",
+                status_code=status.HTTP_400_BAD_REQUEST
+            ).get_full_details()
         except Exception as e:
-            raise CustomAPIException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.exception("An error occurred during subscription validation")
+            return CustomAPIException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR).get_full_details()
+            
 
-    def _validate_payment(self, payload, headers):
-        """Helper function to handle payment validation."""
-        response = requests.post(
-            'https://api.flutterwave.com/v3/validate-charge',
-            json=payload,
-            headers=headers
-        )
-        return response.json()
+class CreateFreePlanView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    @transaction.atomic
-    def _process_subscription(self, user, data):
-        """Creates or updates a subscription and returns the subscription and card data."""
-        tx_ref = data.get("tx_ref")
-        customer_id = data.get("customer")
-        plan_id = data.get("plan")
+    def post(self, request):
+        plan_id = request.data.get("plan_id")
+        try:
+            free_plan = SubscriptionPlan.objects.filter(plan_id=plan_id).first()
 
-        # Get or create subscription plan and expiration date
-        plan = SubscriptionPlan.objects.get(plan_id=plan_id)
-        expiration_date = timezone.now() + timedelta(days=plan.duration)
+            if not free_plan:
+                return CustomAPIException(detail="Free plan is not available.", status_code=status.HTTP_404_NOT_FOUND).get_full_details()
 
-        # Update or create subscription atomically
-        subscription, _ = Subscription.objects.update_or_create(
-            user=user,
-            defaults={
-                "plan": plan,
-                "start_date": timezone.now(),
-                "status": data.get("processor_response"),
-                "expiration_date": expiration_date,
-                "tx_ref": tx_ref,
-                "customer_id": customer_id.get("id"),
-                "is_active": True,
-            }
-        )
-        return subscription, data.get("card")
+            active_subscription = Subscription.objects.filter(user=request.user, is_active=True).exists()
 
-    def _save_card_info(self, subscription, card_data):
-        """Saves card information if available."""
-        if card_data:
-            Card.objects.create(
-                subscription=subscription,
-                first_6digits=card_data["first_6digits"],
-                last_4digits=card_data["last_4digits"],
-                issuer=card_data["issuer"],
-                country=card_data["country"],
-                card_type=card_data["type"],
-                expiry_date=card_data["expiry"]
+            if active_subscription:
+                return CustomAPIException(detail="You already have an active subscription.", status_code=status.HTTP_400_BAD_REQUEST).get_full_details()
+
+            # Calculate expiration date based on the plan's duration
+            expiration_date = timezone.now() + timedelta(days=free_plan.duration)
+            
+            # Create a new subscription
+            subscription, created  = Subscription.objects.update_or_create(
+                user=request.user,
+                defaults={
+                    'plan': free_plan,
+                    "expiration_date": expiration_date,
+                    "tx_ref":f"FLW-MOCK-{request.user.email}-{timezone.now()}",
+                    "status":"successful",
+                    'start_date':timezone.now(),
+                    "is_active": False,
+                    'auto_renew': False,
+                    'payment_months':  300,
+                }
+                
             )
+            
+            if created:
+                subscription.start_date = timezone.now()
+                subscription.expiration_date = subscription.calculate_expiration_date()
+            else:
+                subscription.renew_subscription()
+
+            return custom_response(
+                status_code=status.HTTP_201_CREATED,
+                message="Free plan activated successfully.",
+                data={
+                    "plan_name": free_plan.name,
+                    "start_date": subscription.start_date,
+                    "expiration_date": subscription.expiration_date,
+                },
+            ) 
+        except Exception as e:
+            return CustomAPIException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR).get_full_details()

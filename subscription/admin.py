@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SubscriptionPlan, Subscription, Billing
+from .models import Card, SubscriptionPlan, Subscription, Billing
 
 @admin.register(SubscriptionPlan)
 class SubscriptionPlanAdmin(admin.ModelAdmin):
@@ -32,3 +32,13 @@ class BillingAdmin(admin.ModelAdmin):
     list_filter = ('currency', 'gateway', 'payment_date')
     readonly_fields = ('payment_date',)
 
+
+
+@admin.register(Card)
+class CardAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'issuer', 'country', 'card_type', 'expiry_date', 'created_at')
+    list_filter = ('issuer', 'country', 'card_type', 'created_at')
+    search_fields = ('issuer', 'first_6digits', 'last_4digits', 'user__email')
+    
+    ordering = ('-created_at',)
+    readonly_fields = ('id', 'created_at')

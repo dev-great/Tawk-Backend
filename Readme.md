@@ -11,12 +11,13 @@ This guide provides step-by-step instructions for setting up and running a Djang
 
 ## Steps
 
-### 1. Create Celery Worker
+### 1. Cache Backend
 
-Open a terminal and run the Celery worker:
+Open a terminal and run the command:
 
 ```bash
-celery -A tawq worker -l info
+python manage.py createcachetable
+
 ```
 
 ### 2. Create Celery Beat

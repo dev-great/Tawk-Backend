@@ -14,24 +14,27 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-295#lq+1oh6yv$@&dn^c8d)8tpwma-8xvhvlnup3)u_5@1r!r='
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1' , 'tawk-backend-46a670866b8a.herokuapp.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '52b9-102-88-68-46.ngrok-free.app', 'tawk-backend-46a670866b8a.herokuapp.com']
 
 
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
-SECURE_SSL_REDIRECT = not DEBUG
-SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SESSION_COOKIE_HTTPONLY = True
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+# SESSION_COOKIE_SECURE = not DEBUG
+# CSRF_COOKIE_SECURE = not DEBUG
+# SECURE_SSL_REDIRECT = not DEBUG
+# SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# SESSION_COOKIE_HTTPONLY = True
+# SECURE_BROWSER_XSS_FILTER = True
+# SECURE_CONTENT_TYPE_NOSNIFF = True
+# SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  
+    "http://localhost:5173",
+    "http://localhost:8000",
+    'http://127.0.0.1:8000',  
+    "https://52b9-102-88-68-46.ngrok-free.app",
     "https://tawk-backend-46a670866b8a.herokuapp.com", 
 ]
 CORS_ALLOW_METHODS = [
@@ -179,8 +182,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+
     # 'django_tenants.middleware.main.TenantMainMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    # 'subscription.middleware.CheckSubscriptionExpirationMiddleware',
 ]
 
 ROOT_URLCONF = 'tawq.urls'
@@ -409,7 +414,7 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": False,
+    "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,
 
     "ALGORITHM": "HS256",
@@ -447,6 +452,6 @@ SIMPLE_JWT = {
 
 
 
-if 'DATABASE_URL' in os.environ:
-    import dj_database_url
-    DATABASES = {'default': dj_database_url.config()}
+# if 'DATABASE_URL' in os.environ:
+#     import dj_database_url
+#     DATABASES = {'default': dj_database_url.config()}
