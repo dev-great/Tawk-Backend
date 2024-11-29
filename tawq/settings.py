@@ -14,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-295#lq+1oh6yv$@&dn^c8d)8tpwma-8xvhvlnup3)u_5@1r!r='
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'tawk-backend-46a670866b8a.herokuapp.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','tawktool.onrender.com', 'tawk-backend-46a670866b8a.herokuapp.com']
 
 
 SESSION_COOKIE_SECURE = not DEBUG
@@ -33,6 +33,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "https://tawk-backend-46a670866b8a.herokuapp.com", 
+    "https://tawktool.onrender.com",
 ]
 CORS_ALLOW_METHODS = [
     "DELETE",
